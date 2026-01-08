@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Settings, LogOut, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import BuzzerButton from '@/components/BuzzerButton';
 import AlertOverlay from '@/components/AlertOverlay';
 import SettingsModal from '@/components/SettingsModal';
+import NotificationPermission from '@/components/NotificationPermission';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -48,6 +49,14 @@ const Index: React.FC = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  // Handle foreground push notifications
+  const handleNotificationReceived = useCallback((payload: any) => {
+    if (payload.data?.sender_id !== user?.id) {
+      setAlertSenderName(payload.data?.sender_name || 'Someone');
+      setShowAlert(true);
+    }
+  }, [user?.id]);
+
   const handleBuzzerClick = async () => {
     // Broadcast alert to all other users via realtime
     const channel = supabase.channel('gate-alerts');
@@ -61,6 +70,18 @@ const Index: React.FC = () => {
         timestamp: new Date().toISOString(),
       },
     });
+
+    // Also send push notification via edge function
+    try {
+      await supabase.functions.invoke('send-push-notification', {
+        body: {
+          sender_id: user?.id,
+          sender_name: profile?.full_name || 'Unknown',
+        },
+      });
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+    }
 
     // Just show toast to sender, not the alert
     toast.success('Alert sent to all members!');
@@ -98,6 +119,7 @@ const Index: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          <NotificationPermission onNotificationReceived={handleNotificationReceived} />
           <Button
             variant="ghost"
             size="icon"
