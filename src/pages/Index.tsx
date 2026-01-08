@@ -17,6 +17,14 @@ const Index: React.FC = () => {
   const [alertSenderName, setAlertSenderName] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
 
+  // Handle foreground push notifications - must be before any early returns
+  const handleNotificationReceived = useCallback((payload: any) => {
+    if (payload.data?.sender_id !== user?.id) {
+      setAlertSenderName(payload.data?.sender_name || 'Someone');
+      setShowAlert(true);
+    }
+  }, [user?.id]);
+
   // Subscribe to realtime alerts from other users
   useEffect(() => {
     if (!user) return;
@@ -48,14 +56,6 @@ const Index: React.FC = () => {
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
-
-  // Handle foreground push notifications
-  const handleNotificationReceived = useCallback((payload: any) => {
-    if (payload.data?.sender_id !== user?.id) {
-      setAlertSenderName(payload.data?.sender_name || 'Someone');
-      setShowAlert(true);
-    }
-  }, [user?.id]);
 
   const handleBuzzerClick = async () => {
     // Broadcast alert to all other users via realtime
