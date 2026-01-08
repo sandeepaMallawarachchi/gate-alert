@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Settings, LogOut, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -7,12 +7,34 @@ import BuzzerButton from '@/components/BuzzerButton';
 import AlertOverlay from '@/components/AlertOverlay';
 import SettingsModal from '@/components/SettingsModal';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Index: React.FC = () => {
   const { user, profile, loading, signOut } = useAuth();
   const [showAlert, setShowAlert] = useState(false);
+  const [alertSenderName, setAlertSenderName] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
+
+  // Subscribe to realtime alerts from other users
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('gate-alerts')
+      .on('broadcast', { event: 'gate_alert' }, (payload) => {
+        // Don't show alert to yourself
+        if (payload.payload.sender_id !== user.id) {
+          setAlertSenderName(payload.payload.sender_name || 'Someone');
+          setShowAlert(true);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   if (loading) {
     return (
@@ -26,10 +48,22 @@ const Index: React.FC = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  const handleBuzzerClick = () => {
-    setShowAlert(true);
-    // TODO: Send push notification to security/admin
-    toast.success('Gate alert sent!');
+  const handleBuzzerClick = async () => {
+    // Broadcast alert to all other users via realtime
+    const channel = supabase.channel('gate-alerts');
+    
+    await channel.send({
+      type: 'broadcast',
+      event: 'gate_alert',
+      payload: {
+        sender_id: user?.id,
+        sender_name: profile?.full_name || 'Unknown',
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+    // Just show toast to sender, not the alert
+    toast.success('Alert sent to all members!');
   };
 
   const handleLogout = async () => {
@@ -93,12 +127,16 @@ const Index: React.FC = () => {
         <BuzzerButton onClick={handleBuzzerClick} />
 
         <p className="mt-12 text-sm text-muted-foreground text-center max-w-xs">
-          Security will be notified when you press the button
+          All members will be notified when you press the button
         </p>
       </main>
 
       {/* Alert Overlay */}
-      <AlertOverlay isOpen={showAlert} onClose={() => setShowAlert(false)} />
+      <AlertOverlay 
+        isOpen={showAlert} 
+        onClose={() => setShowAlert(false)} 
+        senderName={alertSenderName}
+      />
 
       {/* Settings Modal */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />

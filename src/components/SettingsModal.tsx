@@ -16,10 +16,17 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { profile, user, updateProfile, refreshProfile } = useAuth();
-  const [fullName, setFullName] = useState(profile?.full_name || '');
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync fullName with profile when modal opens or profile changes
+  React.useEffect(() => {
+    if (isOpen && profile?.full_name) {
+      setFullName(profile.full_name);
+    }
+  }, [isOpen, profile?.full_name]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
