@@ -130,10 +130,10 @@ const Auth: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-username" className="text-foreground">Username</Label>
+                  <Label htmlFor="login-username" className="text-foreground">Username or Email</Label>
                   <Input
                     id="login-username"
-                    placeholder="Enter username"
+                    placeholder="Enter username or email"
                     value={loginData.username}
                     onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
                     className="bg-input border-border text-foreground"
