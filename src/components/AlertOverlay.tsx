@@ -5,9 +5,10 @@ interface AlertOverlayProps {
   isOpen: boolean;
   onClose: () => void;
   senderName?: string;
+  senderAvatar?: string;
 }
 
-const AlertOverlay: React.FC<AlertOverlayProps> = ({ isOpen, onClose, senderName }) => {
+const AlertOverlay: React.FC<AlertOverlayProps> = ({ isOpen, onClose, senderName, senderAvatar }) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
@@ -113,10 +114,18 @@ const AlertOverlay: React.FC<AlertOverlayProps> = ({ isOpen, onClose, senderName
           <X className="w-8 h-8 text-primary-foreground" />
         </button>
         
-        {/* Icon */}
+        {/* Avatar or Icon */}
         <div className="mb-8 flex justify-center">
-          <div className="w-32 h-32 rounded-full bg-background/20 flex items-center justify-center animate-pulse">
-            <DoorOpen className="w-20 h-20 text-primary-foreground" />
+          <div className="w-32 h-32 rounded-full bg-background/20 flex items-center justify-center animate-pulse overflow-hidden border-4 border-primary-foreground/30">
+            {senderAvatar ? (
+              <img 
+                src={senderAvatar} 
+                alt={senderName || 'Sender'} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <DoorOpen className="w-20 h-20 text-primary-foreground" />
+            )}
           </div>
         </div>
         

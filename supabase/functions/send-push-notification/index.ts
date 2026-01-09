@@ -8,6 +8,7 @@ const corsHeaders = {
 interface PushPayload {
   sender_id: string;
   sender_name: string;
+  sender_avatar?: string;
 }
 
 interface ServiceAccount {
@@ -92,7 +93,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { sender_id, sender_name }: PushPayload = await req.json();
+    const { sender_id, sender_name, sender_avatar }: PushPayload = await req.json();
 
     const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
     if (!serviceAccountJson) {
@@ -140,18 +141,21 @@ Deno.serve(async (req) => {
               notification: {
                 title: '🚨 Gate Alert!',
                 body: `${sender_name} is requesting gate access!`,
+                image: sender_avatar || undefined,
               },
               webpush: {
                 fcm_options: {
                   link: '/'
                 },
                 notification: {
-                  icon: '/pwa-192x192.png'
+                  icon: sender_avatar || '/pwa-192x192.png',
+                  image: sender_avatar || undefined,
                 }
               },
               data: {
                 sender_id,
                 sender_name,
+                sender_avatar: sender_avatar || '',
                 type: 'gate_alert',
               },
             }

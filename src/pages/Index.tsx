@@ -15,12 +15,14 @@ const Index: React.FC = () => {
   const { user, profile, loading, signOut } = useAuth();
   const [showAlert, setShowAlert] = useState(false);
   const [alertSenderName, setAlertSenderName] = useState<string>('');
+  const [alertSenderAvatar, setAlertSenderAvatar] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
 
   // Handle foreground push notifications - must be before any early returns
   const handleNotificationReceived = useCallback((payload: any) => {
     if (payload.data?.sender_id !== user?.id) {
       setAlertSenderName(payload.data?.sender_name || 'Someone');
+      setAlertSenderAvatar(payload.data?.sender_avatar || '');
       setShowAlert(true);
     }
   }, [user?.id]);
@@ -35,6 +37,7 @@ const Index: React.FC = () => {
         // Don't show alert to yourself
         if (payload.payload.sender_id !== user.id) {
           setAlertSenderName(payload.payload.sender_name || 'Someone');
+          setAlertSenderAvatar(payload.payload.sender_avatar || '');
           setShowAlert(true);
         }
       })
@@ -67,6 +70,7 @@ const Index: React.FC = () => {
       payload: {
         sender_id: user?.id,
         sender_name: profile?.full_name || 'Unknown',
+        sender_avatar: profile?.avatar_url || '',
         timestamp: new Date().toISOString(),
       },
     });
@@ -77,6 +81,7 @@ const Index: React.FC = () => {
         body: {
           sender_id: user?.id,
           sender_name: profile?.full_name || 'Unknown',
+          sender_avatar: profile?.avatar_url || '',
         },
       });
     } catch (error) {
@@ -158,6 +163,7 @@ const Index: React.FC = () => {
         isOpen={showAlert} 
         onClose={() => setShowAlert(false)} 
         senderName={alertSenderName}
+        senderAvatar={alertSenderAvatar}
       />
 
       {/* Settings Modal */}
