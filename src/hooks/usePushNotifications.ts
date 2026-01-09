@@ -36,7 +36,7 @@ export const usePushNotifications = (onNotificationReceived?: (payload: any) => 
     setIsLoading(true);
     try {
       const token = await requestNotificationPermission();
-      
+
       if (token) {
         // Save token to database
         const { error } = await supabase
@@ -55,13 +55,15 @@ export const usePushNotifications = (onNotificationReceived?: (payload: any) => 
         setIsEnabled(true);
         toast.success('Push notifications enabled!');
         return true;
-      } else {
-        toast.error('Could not get notification permission');
-        return false;
       }
+
+      // Token not returned: either permission not granted or token creation failed
+      toast.error('Could not enable notifications (permission or token failed)');
+      return false;
     } catch (error) {
       console.error('Error enabling notifications:', error);
-      toast.error('Failed to enable notifications');
+      const message = error instanceof Error ? error.message : 'Failed to enable notifications';
+      toast.error(message);
       return false;
     } finally {
       setIsLoading(false);

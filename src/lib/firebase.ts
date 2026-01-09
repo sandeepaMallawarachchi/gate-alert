@@ -16,6 +16,21 @@ const VAPID_KEY = "ovyvtdAYsROQtmv-Yb_X_dbY92OXQFncaQ-OT1986X4";
 let app: ReturnType<typeof initializeApp> | null = null;
 let messaging: Messaging | null = null;
 
+const FCM_SW_PATH = '/firebase-messaging-sw.js';
+const FCM_SW_SCOPE = '/firebase-messaging/';
+
+const ensureFcmServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
+  if (!('serviceWorker' in navigator)) return null;
+
+  try {
+    // Avoid clobbering the PWA service worker at scope '/'
+    return await navigator.serviceWorker.register(FCM_SW_PATH, { scope: FCM_SW_SCOPE });
+  } catch (error) {
+    console.error('Failed to register FCM service worker:', error);
+    return null;
+  }
+};
+
 export const initializeFirebase = () => {
   if (!firebaseConfig.apiKey) {
     console.warn('Firebase config not set. Push notifications will not work.');
@@ -25,17 +40,10 @@ export const initializeFirebase = () => {
   try {
     app = initializeApp(firebaseConfig);
     messaging = getMessaging(app);
-    
-    // Send config to service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.active?.postMessage({
-          type: 'FIREBASE_CONFIG',
-          config: firebaseConfig
-        });
-      });
-    }
-    
+
+    // Ensure FCM service worker is registered (needed for background notifications)
+    void ensureFcmServiceWorker();
+
     return messaging;
   } catch (error) {
     console.error('Error initializing Firebase:', error);
@@ -52,11 +60,20 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
   try {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-      console.log('Notification permission denied');
+      console.log('Notification permission not granted:', permission);
       return null;
     }
 
-    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+    const swRegistration = await ensureFcmServiceWorker();
+    if (!swRegistration) {
+      throw new Error('Service worker registration failed');
+    }
+
+    const token = await getToken(messaging, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: swRegistration,
+    });
+
     console.log('FCM Token:', token);
     return token;
   } catch (error) {
