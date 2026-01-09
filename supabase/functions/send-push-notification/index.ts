@@ -143,14 +143,48 @@ Deno.serve(async (req) => {
                 body: `${sender_name} is requesting gate access!`,
                 image: sender_avatar || undefined,
               },
+              android: {
+                priority: 'high',
+                notification: {
+                  icon: 'ic_notification',
+                  color: '#ef4444',
+                  sound: 'default',
+                  channel_id: 'gate_alerts',
+                  visibility: 'public',
+                  notification_priority: 'PRIORITY_MAX',
+                  default_vibrate_timings: true,
+                  default_sound: true,
+                },
+              },
               webpush: {
+                headers: {
+                  Urgency: 'high',
+                },
                 fcm_options: {
                   link: '/'
                 },
                 notification: {
                   icon: sender_avatar || '/pwa-192x192.png',
                   image: sender_avatar || undefined,
+                  requireInteraction: true,
+                  vibrate: [500, 200, 500, 200, 500],
                 }
+              },
+              apns: {
+                headers: {
+                  'apns-priority': '10',
+                },
+                payload: {
+                  aps: {
+                    alert: {
+                      title: '🚨 Gate Alert!',
+                      body: `${sender_name} is requesting gate access!`,
+                    },
+                    sound: 'default',
+                    badge: 1,
+                    'content-available': 1,
+                  },
+                },
               },
               data: {
                 sender_id,
