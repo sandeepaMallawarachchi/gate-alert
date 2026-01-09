@@ -100,16 +100,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (usernameOrEmail: string, password: string) => {
-    // Check if input is an email or username
     const isEmail = usernameOrEmail.includes('@');
     
     let email = usernameOrEmail;
     
     if (!isEmail) {
-      // It's a username - we need to find the corresponding email
-      // Since we can't directly query auth.users, we use the email pattern from signup
-      // The signup uses: `${username}@gatealert.local` as the email
-      email = `${usernameOrEmail}@gatealert.local`;
+      // Look up email from profiles table by username
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', usernameOrEmail)
+        .maybeSingle();
+
+      if (profileError || !profileData?.email) {
+        return { error: new Error('Invalid username or password') };
+      }
+      email = profileData.email;
     }
 
     const { error } = await supabase.auth.signInWithPassword({

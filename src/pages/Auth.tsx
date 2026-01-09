@@ -15,6 +15,7 @@ const Auth: React.FC = () => {
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [registerData, setRegisterData] = useState({ 
     username: '', 
+    email: '',
     fullName: '', 
     password: '', 
     confirmPassword: '' 
@@ -54,8 +55,15 @@ const Auth: React.FC = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!registerData.username || !registerData.fullName || !registerData.password) {
+    if (!registerData.username || !registerData.email || !registerData.fullName || !registerData.password) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(registerData.email)) {
+      toast.error('Please enter a valid email address');
       return;
     }
 
@@ -77,14 +85,12 @@ const Auth: React.FC = () => {
     }
 
     setLoading(true);
-    // Using username as email domain for simplicity
-    const email = `${registerData.username}@gatealert.local`;
-    const { error } = await signUp(email, registerData.password, registerData.username, registerData.fullName);
+    const { error } = await signUp(registerData.email, registerData.password, registerData.username, registerData.fullName);
     setLoading(false);
 
     if (error) {
       if (error.message.includes('already registered')) {
-        toast.error('Username already taken');
+        toast.error('Email already taken');
       } else {
         toast.error(error.message);
       }
@@ -177,6 +183,17 @@ const Auth: React.FC = () => {
                     placeholder="Choose a username"
                     value={registerData.username}
                     onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
+                    className="bg-input border-border text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-email" className="text-foreground">Email</Label>
+                  <Input
+                    id="register-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={registerData.email}
+                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                     className="bg-input border-border text-foreground"
                   />
                 </div>
