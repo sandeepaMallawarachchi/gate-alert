@@ -1,15 +1,17 @@
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
 
-// Firebase configuration - replace with your Firebase project config
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+  apiKey: "AIzaSyDbJhz9Hb-TdBYjE6hdREfnJgr865qu9Q0",
+  authDomain: "gatealertapp.firebaseapp.com",
+  projectId: "gatealertapp",
+  storageBucket: "gatealertapp.firebasestorage.app",
+  messagingSenderId: "510658179336",
+  appId: "1:510658179336:web:296b486124dcb43fee7cbd"
 };
+
+const VAPID_KEY = "ovyvtdAYsROQtmv-Yb_X_dbY92OXQFncaQ-OT1986X4";
 
 let app: ReturnType<typeof initializeApp> | null = null;
 let messaging: Messaging | null = null;
@@ -54,14 +56,7 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
       return null;
     }
 
-    // Get the VAPID key from environment
-    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY || '';
-    if (!vapidKey) {
-      console.warn('VAPID key not set');
-      return null;
-    }
-
-    const token = await getToken(messaging, { vapidKey });
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
     console.log('FCM Token:', token);
     return token;
   } catch (error) {
