@@ -2,42 +2,38 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
 
-// Firebase config will be injected via postMessage from the main app
-let firebaseConfig = null;
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDbJhz9Hb-TdBYjE6hdREfnJgr865qu9Q0",
+  authDomain: "gatealertapp.firebaseapp.com",
+  projectId: "gatealertapp",
+  storageBucket: "gatealertapp.firebasestorage.app",
+  messagingSenderId: "510658179336",
+  appId: "1:510658179336:web:296b486124dcb43fee7cbd"
+};
 
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'FIREBASE_CONFIG') {
-    firebaseConfig = event.data.config;
-    initializeFirebase();
-  }
-});
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
 
-function initializeFirebase() {
-  if (!firebaseConfig) return;
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message:', payload);
   
-  firebase.initializeApp(firebaseConfig);
-  const messaging = firebase.messaging();
+  const notificationTitle = payload.notification?.title || '🚨 Gate Alert!';
+  const notificationOptions = {
+    body: payload.notification?.body || 'Someone is requesting gate access!',
+    icon: '/pwa-192x192.png',
+    badge: '/pwa-192x192.png',
+    vibrate: [500, 200, 500, 200, 500],
+    requireInteraction: true,
+    tag: 'gate-alert',
+    renotify: true,
+    actions: [
+      { action: 'open', title: 'Open App' }
+    ]
+  };
 
-  messaging.onBackgroundMessage((payload) => {
-    console.log('[firebase-messaging-sw.js] Received background message:', payload);
-    
-    const notificationTitle = payload.notification?.title || '🚨 Gate Alert!';
-    const notificationOptions = {
-      body: payload.notification?.body || 'Someone is requesting gate access!',
-      icon: '/pwa-192x192.png',
-      badge: '/pwa-192x192.png',
-      vibrate: [500, 200, 500, 200, 500],
-      requireInteraction: true,
-      tag: 'gate-alert',
-      renotify: true,
-      actions: [
-        { action: 'open', title: 'Open App' }
-      ]
-    };
-
-    self.registration.showNotification(notificationTitle, notificationOptions);
-  });
-}
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
