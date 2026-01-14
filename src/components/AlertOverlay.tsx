@@ -58,34 +58,40 @@ const AlertOverlay: React.FC<AlertOverlayProps> = ({ isOpen, onClose, senderName
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
       
-      oscillator.type = 'sine';
-      gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+      // Use square wave for louder, more piercing alarm sound
+      oscillator.type = 'square';
+      // Max out the volume - 1.0 is maximum
+      gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
       
       oscillatorRef.current = oscillator;
       gainNodeRef.current = gainNode;
       
-      // Start oscillator
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      // Start oscillator with higher frequency for more attention-grabbing sound
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
       oscillator.start();
       
-      // Alternate frequency for siren effect
+      // Alternate frequency for siren effect - wider range for more urgency
       let highFreq = true;
       frequencyIntervalRef.current = setInterval(() => {
         if (oscillatorRef.current) {
-          oscillatorRef.current.frequency.setValueAtTime(highFreq ? 600 : 800, audioContext.currentTime);
+          oscillatorRef.current.frequency.setValueAtTime(highFreq ? 440 : 880, audioContext.currentTime);
           highFreq = !highFreq;
         }
-      }, 250);
+      }, 200);
       
-      // Vibration pattern - loop it
-      if (navigator.vibrate) {
-        navigator.vibrate([200, 100, 200, 100, 200]);
-        vibrationIntervalRef.current = setInterval(() => {
-          if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200, 100, 200]);
-          }
-        }, 1000);
-      }
+      // Vibration pattern - stronger, longer vibrations with continuous loop
+      const vibratePattern = () => {
+        if (navigator.vibrate) {
+          // Long vibrations with short pauses for maximum impact
+          navigator.vibrate([500, 100, 500, 100, 500, 100, 500]);
+        }
+      };
+      
+      // Start immediately
+      vibratePattern();
+      
+      // Continue vibrating every 2.3 seconds (pattern duration)
+      vibrationIntervalRef.current = setInterval(vibratePattern, 2300);
 
       return () => {
         stopAlarm();
