@@ -25,9 +25,11 @@ const InstallInstructionsModal = () => {
 
     // Only show on web browser, not in installed app
     if (!isStandalone && !hasSeenInstall) {
-      // Detect platform
-      const userAgent = navigator.userAgent.toLowerCase();
-      if (/iphone|ipad|ipod/.test(userAgent)) {
+      // Detect platform using more reliable methods
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
+      
+      if (isIOS) {
         setPlatform("ios");
       } else {
         setPlatform("android");

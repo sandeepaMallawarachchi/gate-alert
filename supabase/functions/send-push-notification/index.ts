@@ -126,6 +126,7 @@ Deno.serve(async (req) => {
     }
 
     // Send notifications using FCM HTTP v1 API
+    // Using data-only messages to control display and avoid duplicate system notifications
     const notifications = tokens.map(async ({ token }) => {
       const response = await fetch(
         `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`,
@@ -138,59 +139,35 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             message: {
               token: token,
-              notification: {
-                title: '🚨 Gate Alert!',
-                body: `${sender_name} is requesting gate access!`,
-                image: sender_avatar || undefined,
-              },
-              android: {
-                priority: 'high',
-                notification: {
-                  icon: 'ic_notification',
-                  color: '#ef4444',
-                  sound: 'default',
-                  channel_id: 'gate_alerts',
-                  visibility: 'public',
-                  notification_priority: 'PRIORITY_MAX',
-                  default_vibrate_timings: true,
-                  default_sound: true,
-                },
-              },
-              webpush: {
-                headers: {
-                  Urgency: 'high',
-                },
-                fcm_options: {
-                  link: '/'
-                },
-                notification: {
-                  icon: sender_avatar || '/pwa-192x192.png',
-                  image: sender_avatar || undefined,
-                  requireInteraction: true,
-                  vibrate: [500, 200, 500, 200, 500],
-                }
-              },
-              apns: {
-                headers: {
-                  'apns-priority': '10',
-                },
-                payload: {
-                  aps: {
-                    alert: {
-                      title: '🚨 Gate Alert!',
-                      body: `${sender_name} is requesting gate access!`,
-                    },
-                    sound: 'default',
-                    badge: 1,
-                    'content-available': 1,
-                  },
-                },
-              },
+              // Use data-only message to let service worker handle display
+              // This prevents duplicate notifications from FCM auto-display
               data: {
                 sender_id,
                 sender_name,
                 sender_avatar: sender_avatar || '',
                 type: 'gate_alert',
+                title: '🚨 Gate Alert!',
+                body: `${sender_name} is requesting gate access!`,
+              },
+              android: {
+                priority: 'high',
+              },
+              webpush: {
+                headers: {
+                  Urgency: 'high',
+                  TTL: '60',
+                },
+              },
+              apns: {
+                headers: {
+                  'apns-priority': '10',
+                  'apns-push-type': 'background',
+                },
+                payload: {
+                  aps: {
+                    'content-available': 1,
+                  },
+                },
               },
             }
           }),
