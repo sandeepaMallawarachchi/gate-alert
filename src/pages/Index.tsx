@@ -17,6 +17,7 @@ const Index: React.FC = () => {
   const [alertSenderName, setAlertSenderName] = useState<string>('');
   const [alertSenderAvatar, setAlertSenderAvatar] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
+  const [sendingAlert, setSendingAlert] = useState(false);
 
   // Handle foreground push notifications - must be before any early returns
   const handleNotificationReceived = useCallback((payload: any) => {
@@ -61,35 +62,41 @@ const Index: React.FC = () => {
   }
 
   const handleBuzzerClick = async () => {
-    // Broadcast alert to all other users via realtime
-    const channel = supabase.channel('gate-alerts');
+    setSendingAlert(true);
     
-    await channel.send({
-      type: 'broadcast',
-      event: 'gate_alert',
-      payload: {
-        sender_id: user?.id,
-        sender_name: profile?.full_name || 'Unknown',
-        sender_avatar: profile?.avatar_url || '',
-        timestamp: new Date().toISOString(),
-      },
-    });
-
-    // Also send push notification via edge function
     try {
-      await supabase.functions.invoke('send-push-notification', {
-        body: {
+      // Broadcast alert to all other users via realtime
+      const channel = supabase.channel('gate-alerts');
+      
+      await channel.send({
+        type: 'broadcast',
+        event: 'gate_alert',
+        payload: {
           sender_id: user?.id,
           sender_name: profile?.full_name || 'Unknown',
           sender_avatar: profile?.avatar_url || '',
+          timestamp: new Date().toISOString(),
         },
       });
-    } catch (error) {
-      console.error('Error sending push notification:', error);
-    }
 
-    // Just show toast to sender, not the alert
-    toast.success('Alert sent to all members!');
+      // Also send push notification via edge function
+      try {
+        await supabase.functions.invoke('send-push-notification', {
+          body: {
+            sender_id: user?.id,
+            sender_name: profile?.full_name || 'Unknown',
+            sender_avatar: profile?.avatar_url || '',
+          },
+        });
+      } catch (error) {
+        console.error('Error sending push notification:', error);
+      }
+
+      // Just show toast to sender, not the alert
+      toast.success('Alert sent to all members!');
+    } finally {
+      setSendingAlert(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -151,7 +158,7 @@ const Index: React.FC = () => {
           <p className="text-muted-foreground">Press the button to request gate opening</p>
         </div>
 
-        <BuzzerButton onClick={handleBuzzerClick} />
+        <BuzzerButton onClick={handleBuzzerClick} loading={sendingAlert} />
 
         <p className="mt-12 text-sm text-muted-foreground text-center max-w-xs">
           All members will be notified when you press the button
