@@ -43,16 +43,17 @@ const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
 onBackgroundMessage(messaging, (payload) => {
-  const title = payload.notification?.title || '🚨 Gate Alert!';
-  const body = payload.notification?.body || 'Someone is requesting gate access!';
-
-  const senderAvatar = (payload.data as any)?.sender_avatar as string | undefined;
+  // This handles data-only messages when app is in background
+  // Data-only messages give us full control over notification display
+  const data = payload.data as any;
+  const title = data?.title || '🚨 Gate Alert!';
+  const body = data?.body || 'Someone is requesting gate access!';
+  const senderAvatar = data?.sender_avatar as string | undefined;
 
   const options: any = {
     body,
     icon: senderAvatar || '/pwa-192x192.png',
     badge: '/pwa-192x192.png',
-    image: senderAvatar || undefined,
     vibrate: [500, 200, 500, 200, 500],
     requireInteraction: true,
     tag: 'gate-alert',

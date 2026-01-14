@@ -7,7 +7,7 @@ import BuzzerButton from '@/components/BuzzerButton';
 import AlertOverlay from '@/components/AlertOverlay';
 import SettingsModal from '@/components/SettingsModal';
 import InstallInstructionsModal from '@/components/InstallInstructionsModal';
-import NotificationPermission from '@/components/NotificationPermission';
+import NotificationPermissionModal from '@/components/NotificationPermissionModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -20,14 +20,19 @@ const Index: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [sendingAlert, setSendingAlert] = useState(false);
 
-  // Handle foreground push notifications - must be before any early returns
+  // Check if app is installed (standalone mode)
+  const isStandalone = 
+    typeof window !== 'undefined' && (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true
+    );
+
+  // Handle foreground push notifications - only trigger alert if NOT already shown via realtime
   const handleNotificationReceived = useCallback((payload: any) => {
-    if (payload.data?.sender_id !== user?.id) {
-      setAlertSenderName(payload.data?.sender_name || 'Someone');
-      setAlertSenderAvatar(payload.data?.sender_avatar || '');
-      setShowAlert(true);
-    }
-  }, [user?.id]);
+    // Push notifications are handled by the service worker for background
+    // For foreground, we rely on realtime broadcast to avoid duplicates
+    console.log('Foreground push received (handled by realtime):', payload);
+  }, []);
 
   // Subscribe to realtime alerts from other users
   useEffect(() => {
@@ -132,7 +137,6 @@ const Index: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          <NotificationPermission onNotificationReceived={handleNotificationReceived} />
           <Button
             variant="ghost"
             size="icon"
@@ -179,6 +183,12 @@ const Index: React.FC = () => {
 
       {/* Install Instructions Modal - only shows on first web visit */}
       <InstallInstructionsModal />
+
+      {/* Notification Permission Modal - shows after install for mandatory setup */}
+      <NotificationPermissionModal 
+        isStandalone={isStandalone} 
+        onNotificationReceived={handleNotificationReceived}
+      />
     </div>
   );
 };

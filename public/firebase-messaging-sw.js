@@ -18,10 +18,12 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message:', payload);
   
-  const notificationTitle = payload.notification?.title || '🚨 Gate Alert!';
+  // Handle data-only messages
+  const data = payload.data || {};
+  const notificationTitle = data.title || payload.notification?.title || '🚨 Gate Alert!';
   const notificationOptions = {
-    body: payload.notification?.body || 'Someone is requesting gate access!',
-    icon: '/pwa-192x192.png',
+    body: data.body || payload.notification?.body || 'Someone is requesting gate access!',
+    icon: data.sender_avatar || '/pwa-192x192.png',
     badge: '/pwa-192x192.png',
     vibrate: [500, 200, 500, 200, 500],
     requireInteraction: true,
