@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import BuzzerButton from '@/components/BuzzerButton';
 import AlertOverlay from '@/components/AlertOverlay';
 import SettingsModal from '@/components/SettingsModal';
+import InstallInstructionsModal from '@/components/InstallInstructionsModal';
 import NotificationPermission from '@/components/NotificationPermission';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -175,6 +176,9 @@ const Index: React.FC = () => {
 
       {/* Settings Modal */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+
+      {/* Install Instructions Modal - only shows on first web visit */}
+      <InstallInstructionsModal />
     </div>
   );
 };
