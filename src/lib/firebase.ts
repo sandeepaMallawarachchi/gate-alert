@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId: "1:510658179336:web:296b486124dcb43fee7cbd"
 };
 
-const VAPID_KEY = "ovyvtdAYsROQtmv-Yb_X_dbY92OXQFncaQ-OT1986X4";
+const VAPID_KEY = "BM6WqsVlwTEca1Nsu6A0P0NGqYxUlltBJzDfRHIN5PXUX9oMuuC1LE5fcH8a__yxt2T014GxZOLh0MtJnwhN-Hk";
 
 let app: ReturnType<typeof initializeApp> | null = null;
 let messaging: Messaging | null = null;
