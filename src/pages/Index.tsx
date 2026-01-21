@@ -7,7 +7,7 @@ import BuzzerButton from '@/components/BuzzerButton';
 import AlertOverlay from '@/components/AlertOverlay';
 import SettingsModal from '@/components/SettingsModal';
 import InstallInstructionsModal from '@/components/InstallInstructionsModal';
-import NotificationPermissionModal from '@/components/NotificationPermissionModal';
+import NotificationPermission from '@/components/NotificationPermission';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -19,13 +19,6 @@ const Index: React.FC = () => {
   const [alertSenderAvatar, setAlertSenderAvatar] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
   const [sendingAlert, setSendingAlert] = useState(false);
-
-  // Check if app is installed (standalone mode)
-  const isStandalone = 
-    typeof window !== 'undefined' && (
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true
-    );
 
   // Handle foreground push notifications - only trigger alert if NOT already shown via realtime
   const handleNotificationReceived = useCallback((payload: any) => {
@@ -137,6 +130,7 @@ const Index: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          <NotificationPermission onNotificationReceived={handleNotificationReceived} />
           <Button
             variant="ghost"
             size="icon"
@@ -183,12 +177,6 @@ const Index: React.FC = () => {
 
       {/* Install Instructions Modal - only shows on first web visit */}
       <InstallInstructionsModal />
-
-      {/* Notification Permission Modal - shows after install for mandatory setup */}
-      <NotificationPermissionModal 
-        isStandalone={isStandalone} 
-        onNotificationReceived={handleNotificationReceived}
-      />
     </div>
   );
 };
