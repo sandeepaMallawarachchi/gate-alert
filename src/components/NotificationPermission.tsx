@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, BellOff, Loader2 } from 'lucide-react';
+import { Bell, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 
@@ -10,17 +10,9 @@ interface NotificationPermissionProps {
 const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onNotificationReceived }) => {
   const { isEnabled, isLoading, enableNotifications } = usePushNotifications(onNotificationReceived);
 
+  // Hide when notifications are enabled
   if (isEnabled) {
-    return (
-      <Button
-        variant="ghost"
-        size="icon"
-        disabled
-        className="text-primary"
-      >
-        <Bell className="w-5 h-5" />
-      </Button>
-    );
+    return null;
   }
 
   return (
@@ -35,7 +27,7 @@ const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onNotif
       {isLoading ? (
         <Loader2 className="w-5 h-5 animate-spin" />
       ) : (
-        <BellOff className="w-5 h-5" />
+        <Bell className="w-5 h-5 animate-pulse" />
       )}
     </Button>
   );
