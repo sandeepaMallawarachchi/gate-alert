@@ -80,13 +80,8 @@ const Index: React.FC = () => {
 
       // Also send push notification via edge function
       try {
-        await supabase.functions.invoke('send-push-notification', {
-          body: {
-            sender_id: user?.id,
-            sender_name: profile?.full_name || 'Unknown',
-            sender_avatar: profile?.avatar_url || '',
-          },
-        });
+      // Edge function now gets sender info from database based on authenticated user
+      await supabase.functions.invoke('send-push-notification');
       } catch (error) {
         console.error('Error sending push notification:', error);
       }
