@@ -2,14 +2,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-
-interface PushPayload {
-  sender_id: string;
-  sender_name: string;
-  sender_avatar?: string;
-}
 
 interface ServiceAccount {
   type: string;
@@ -93,7 +87,62 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { sender_id, sender_name, sender_avatar }: PushPayload = await req.json();
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Create client with user's token to verify authentication
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify the JWT token and get user claims
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token: missing user ID' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create service role client for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get sender info from database instead of trusting client
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('full_name, avatar_url')
+      .eq('user_id', userId)
+      .single();
+
+    if (profileError || !profile) {
+      return new Response(
+        JSON.stringify({ error: 'User profile not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const senderName = profile.full_name || 'Unknown';
+    const senderAvatar = profile.avatar_url || '';
 
     const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
     if (!serviceAccountJson) {
@@ -103,16 +152,11 @@ Deno.serve(async (req) => {
     const serviceAccount: ServiceAccount = JSON.parse(serviceAccountJson);
     const accessToken = await getAccessToken(serviceAccount);
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
     // Get all FCM tokens except sender's
     const { data: tokens, error } = await supabase
       .from('fcm_tokens')
       .select('token')
-      .neq('user_id', sender_id);
+      .neq('user_id', userId);
 
     if (error) {
       throw error;
@@ -142,12 +186,12 @@ Deno.serve(async (req) => {
               // Use data-only message to let service worker handle display
               // This prevents duplicate notifications from FCM auto-display
               data: {
-                sender_id,
-                sender_name,
-                sender_avatar: sender_avatar || '',
+                sender_id: userId,
+                sender_name: senderName,
+                sender_avatar: senderAvatar,
                 type: 'gate_alert',
                 title: '🚨 Gate Alert!',
-                body: `${sender_name} is requesting gate access!`,
+                body: `${senderName} is requesting gate access!`,
               },
               android: {
                 priority: 'high',

@@ -102,24 +102,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (usernameOrEmail: string, password: string) => {
     const isEmail = usernameOrEmail.includes('@');
     
-    let email = usernameOrEmail;
-    
     if (!isEmail) {
-      // Look up email from profiles table by username
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('username', usernameOrEmail)
-        .maybeSingle();
+      // Use secure edge function for username login (doesn't expose emails)
+      const { data, error: fnError } = await supabase.functions.invoke('auth-with-username', {
+        body: { username: usernameOrEmail, password },
+      });
 
-      if (profileError || !profileData?.email) {
+      if (fnError) {
         return { error: new Error('Invalid username or password') };
       }
-      email = profileData.email;
+
+      if (data?.error) {
+        return { error: new Error('Invalid username or password') };
+      }
+
+      // Set the session from the edge function response
+      if (data?.access_token && data?.refresh_token) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+        });
+        return { error: sessionError };
+      }
+
+      return { error: new Error('Invalid username or password') };
     }
 
+    // Direct email login
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: usernameOrEmail,
       password,
     });
 
