@@ -8,10 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 
 const Auth: React.FC = () => {
   const { user, loading: authLoading, signIn, signUp } = useAuth();
   
+  const [forgotOpen, setForgotOpen] = useState(false);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [registerData, setRegisterData] = useState({ 
     username: '', 
