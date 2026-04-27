@@ -259,6 +259,7 @@ const Auth: React.FC = () => {
           </TabsContent>
         </Tabs>
       </Card>
+      <ForgotPasswordModal open={forgotOpen} onOpenChange={setForgotOpen} />
     </div>
   );
 };
