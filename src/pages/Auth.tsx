@@ -8,10 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 
 const Auth: React.FC = () => {
   const { user, loading: authLoading, signIn, signUp } = useAuth();
   
+  const [forgotOpen, setForgotOpen] = useState(false);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [registerData, setRegisterData] = useState({ 
     username: '', 
@@ -140,7 +142,16 @@ const Auth: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password" className="text-foreground">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="login-password" className="text-foreground">Password</Label>
+                    <button
+                      type="button"
+                      onClick={() => setForgotOpen(true)}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                   <Input
                     id="login-password"
                     type="password"
@@ -248,6 +259,7 @@ const Auth: React.FC = () => {
           </TabsContent>
         </Tabs>
       </Card>
+      <ForgotPasswordModal open={forgotOpen} onOpenChange={setForgotOpen} />
     </div>
   );
 };
