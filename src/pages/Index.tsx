@@ -139,6 +139,7 @@ const Index: React.FC = () => {
               <Users className="w-5 h-5" />
             </Button>
           )}
+          <Button
             variant="ghost"
             size="icon"
             onClick={() => setShowSettings(true)}
