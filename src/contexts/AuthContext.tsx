@@ -120,6 +120,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
+  // Periodically re-check active status so deactivated users get auto-logged out
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(async () => {
+      const p = await fetchProfile(user.id);
+      if (p && (p as any).is_active === false) {
+        await supabase.auth.signOut();
+        try { (await import('sonner')).toast.error('No employee found under this name! contact admin for more details'); } catch {}
+      }
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   const signUp = async (email: string, password: string, username: string, fullName: string, avatarUrl?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
