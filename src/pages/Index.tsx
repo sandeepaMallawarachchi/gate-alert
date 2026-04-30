@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Settings, LogOut, Loader2 } from 'lucide-react';
+import { Settings, LogOut, Loader2, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import BuzzerButton from '@/components/BuzzerButton';
@@ -8,16 +8,18 @@ import AlertOverlay from '@/components/AlertOverlay';
 import SettingsModal from '@/components/SettingsModal';
 import InstallInstructionsModal from '@/components/InstallInstructionsModal';
 import NotificationPermission from '@/components/NotificationPermission';
+import AdminUsersModal from '@/components/AdminUsersModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Index: React.FC = () => {
-  const { user, profile, loading, signOut } = useAuth();
+  const { user, profile, isAdmin, loading, signOut } = useAuth();
   const [showAlert, setShowAlert] = useState(false);
   const [alertSenderName, setAlertSenderName] = useState<string>('');
   const [alertSenderAvatar, setAlertSenderAvatar] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const [sendingAlert, setSendingAlert] = useState(false);
 
   // Handle foreground push notifications - only trigger alert if NOT already shown via realtime
@@ -126,6 +128,17 @@ const Index: React.FC = () => {
         
         <div className="flex items-center gap-2">
           <NotificationPermission onNotificationReceived={handleNotificationReceived} />
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowAdmin(true)}
+              className="text-muted-foreground hover:text-foreground hover:bg-secondary"
+              title="Manage users"
+            >
+              <Users className="w-5 h-5" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -169,6 +182,9 @@ const Index: React.FC = () => {
 
       {/* Settings Modal */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+
+      {/* Admin Users Modal */}
+      <AdminUsersModal open={showAdmin} onOpenChange={setShowAdmin} />
 
       {/* Install Instructions Modal - only shows on first web visit */}
       <InstallInstructionsModal />

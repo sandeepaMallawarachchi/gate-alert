@@ -48,7 +48,7 @@ const Auth: React.FC = () => {
     setLoading(false);
 
     if (error) {
-      toast.error('Invalid username or password');
+      toast.error(error.message || 'Invalid username or password');
     } else {
       toast.success('Welcome back!');
     }
