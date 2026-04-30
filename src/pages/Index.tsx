@@ -14,11 +14,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Index: React.FC = () => {
-  const { user, profile, loading, signOut } = useAuth();
+  const { user, profile, isAdmin, loading, signOut } = useAuth();
   const [showAlert, setShowAlert] = useState(false);
   const [alertSenderName, setAlertSenderName] = useState<string>('');
   const [alertSenderAvatar, setAlertSenderAvatar] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const [sendingAlert, setSendingAlert] = useState(false);
 
   // Handle foreground push notifications - only trigger alert if NOT already shown via realtime
