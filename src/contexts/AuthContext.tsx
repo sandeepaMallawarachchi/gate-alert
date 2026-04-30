@@ -10,13 +10,23 @@ interface Profile {
   avatar_url: string | null;
 }
 
+interface Profile {
+  id: string;
+  user_id: string;
+  username: string;
+  full_name: string;
+  avatar_url: string | null;
+  is_active?: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  isAdmin: boolean;
   loading: boolean;
   signUp: (email: string, password: string, username: string, fullName: string, avatarUrl?: string) => Promise<{ error: Error | null }>;
-  signIn: (username: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (username: string, password: string) => Promise<{ error: Error | null; code?: string }>;
   signOut: () => Promise<void>;
   updateProfile: (fullName: string, avatarUrl?: string) => Promise<{ error: Error | null }>;
   refreshProfile: () => Promise<void>;
