@@ -38,6 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
@@ -54,6 +55,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return data;
   };
 
+  const fetchIsAdmin = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .maybeSingle();
+    return !!data;
+  };
+
   const refreshProfile = async () => {
     if (user) {
       const profileData = await fetchProfile(user.id);
@@ -62,30 +73,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    const checkActive = async (p: any) => {
+      if (p && p.is_active === false) {
+        await supabase.auth.signOut();
+        setProfile(null);
+        setIsAdmin(false);
+        try { (await import('sonner')).toast.error('No employee found under this name! contact admin for more details'); } catch {}
+        return false;
+      }
+      return true;
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        // Use setTimeout to avoid potential race conditions
         setTimeout(async () => {
           const profileData = await fetchProfile(session.user.id);
           setProfile(profileData);
+          const admin = await fetchIsAdmin(session.user.id);
+          setIsAdmin(admin);
+          await checkActive(profileData);
         }, 0);
       } else {
         setProfile(null);
+        setIsAdmin(false);
       }
       setLoading(false);
     });
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id).then(setProfile);
+        fetchProfile(session.user.id).then(async (p) => {
+          setProfile(p);
+          await checkActive(p);
+        });
+        fetchIsAdmin(session.user.id).then(setIsAdmin);
       }
       setLoading(false);
     });
