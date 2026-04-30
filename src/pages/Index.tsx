@@ -183,6 +183,9 @@ const Index: React.FC = () => {
       {/* Settings Modal */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
 
+      {/* Admin Users Modal */}
+      <AdminUsersModal open={showAdmin} onOpenChange={setShowAdmin} />
+
       {/* Install Instructions Modal - only shows on first web visit */}
       <InstallInstructionsModal />
     </div>
