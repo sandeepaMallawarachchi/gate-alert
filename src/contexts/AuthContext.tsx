@@ -140,20 +140,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isEmail = usernameOrEmail.includes('@');
     
     if (!isEmail) {
-      // Use secure edge function for username login (doesn't expose emails)
       const { data, error: fnError } = await supabase.functions.invoke('auth-with-username', {
         body: { username: usernameOrEmail, password },
       });
 
-      if (fnError) {
+      // Edge function returns non-2xx -> fnError set; data still has body
+      const code = (data as any)?.error;
+      if (code === 'NOT_FOUND' || code === 'INACTIVE') {
+        return { error: new Error('No employee found under this name! contact admin for more details'), code };
+      }
+      if (fnError || code) {
         return { error: new Error('Invalid username or password') };
       }
 
-      if (data?.error) {
-        return { error: new Error('Invalid username or password') };
-      }
-
-      // Set the session from the edge function response
       if (data?.access_token && data?.refresh_token) {
         const { error: sessionError } = await supabase.auth.setSession({
           access_token: data.access_token,
@@ -165,7 +164,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error: new Error('Invalid username or password') };
     }
 
-    // Direct email login
     const { error } = await supabase.auth.signInWithPassword({
       email: usernameOrEmail,
       password,
