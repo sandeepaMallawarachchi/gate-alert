@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Settings, LogOut, Loader2, Users, MapPin } from 'lucide-react';
+import { LogOut, Loader2, Users, MapPin } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import BuzzerButton from '@/components/BuzzerButton';
@@ -132,18 +132,22 @@ const Index: React.FC = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center gap-3">
+        <button
+          onClick={() => setShowSettings(true)}
+          className="flex items-center gap-3 rounded-md p-1 -m-1 hover:bg-secondary transition-colors"
+          title="Open settings"
+        >
           <Avatar className="w-10 h-10 border border-primary/50">
             <AvatarImage src={profile?.avatar_url || undefined} />
             <AvatarFallback className="bg-secondary text-secondary-foreground">
               {profile?.full_name ? getInitials(profile.full_name) : 'U'}
             </AvatarFallback>
           </Avatar>
-          <div>
+          <div className="text-left">
             <p className="text-sm font-medium text-foreground">{profile?.full_name}</p>
             <p className="text-xs text-muted-foreground">@{profile?.username}</p>
           </div>
-        </div>
+        </button>
         
         <div className="flex items-center gap-2">
           <NotificationPermission onNotificationReceived={handleNotificationReceived} />
@@ -170,14 +174,6 @@ const Index: React.FC = () => {
               <Users className="w-5 h-5" />
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowSettings(true)}
-            className="text-muted-foreground hover:text-foreground hover:bg-secondary"
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
           <Button
             variant="ghost"
             size="icon"
