@@ -41,7 +41,7 @@ const LocationsMap: React.FC = () => {
   const navigate = useNavigate();
   const mapDivRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
-  const markersRef = useRef<Record<string, any>>({});
+  const overlaysRef = useRef<Record<string, any>>({});
   const watchIdRef = useRef<number | null>(null);
   const [locations, setLocations] = useState<SharedLocation[]>([]);
   const [profiles, setProfiles] = useState<Record<string, { full_name: string; avatar_url: string | null }>>({});
