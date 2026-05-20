@@ -4,6 +4,7 @@ import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { NetworkFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
+import { clientsClaim } from 'workbox-core';
 
 import { initializeApp } from 'firebase/app';
 import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw';
@@ -15,6 +16,15 @@ declare let self: ServiceWorkerGlobalScope & {
 // ---- Workbox (PWA offline) ----
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
+
+// Auto-activate new SW versions so users get updates without reinstalling
+self.skipWaiting();
+clientsClaim();
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 
 registerRoute(
   ({ url }) => /\.supabase\.co$/i.test(url.hostname),
