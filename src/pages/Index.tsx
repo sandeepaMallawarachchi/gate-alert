@@ -129,6 +129,15 @@ const Index: React.FC = () => {
         
         <div className="flex items-center gap-2">
           <NotificationPermission onNotificationReceived={handleNotificationReceived} />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/locations')}
+            className="text-muted-foreground hover:text-foreground hover:bg-secondary"
+            title="Live locations"
+          >
+            <MapPin className="w-5 h-5" />
+          </Button>
           {isAdmin && (
             <Button
               variant="ghost"
