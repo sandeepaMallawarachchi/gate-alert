@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Navigate } from 'react-router-dom';
-import { Settings, LogOut, Loader2, Users } from 'lucide-react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { Settings, LogOut, Loader2, Users, MapPin } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import BuzzerButton from '@/components/BuzzerButton';
