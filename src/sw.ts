@@ -17,6 +17,15 @@ declare let self: ServiceWorkerGlobalScope & {
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
+// Auto-activate new SW versions so users get updates without reinstalling
+self.skipWaiting();
+clientsClaim();
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+
 registerRoute(
   ({ url }) => /\.supabase\.co$/i.test(url.hostname),
   new NetworkFirst({
