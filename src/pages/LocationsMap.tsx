@@ -273,19 +273,6 @@ const LocationsMap: React.FC = () => {
           }
         }
       },
-
-  const startLive = async () => {
-    if (!navigator.geolocation) {
-      toast.error('Geolocation not supported');
-      return;
-    }
-    setBusy(true);
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      async (pos) => {
-        await upsertMyLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, true);
-        setIsLive(true);
-        setBusy(false);
-      },
       (err) => {
         toast.error(err.message || 'Location error');
         setBusy(false);
