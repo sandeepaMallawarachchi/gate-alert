@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 
 const Index: React.FC = () => {
   const { user, profile, isAdmin, loading, signOut } = useAuth();
+  const navigate = useNavigate();
   const [showAlert, setShowAlert] = useState(false);
   const [alertSenderName, setAlertSenderName] = useState<string>('');
   const [alertSenderAvatar, setAlertSenderAvatar] = useState<string>('');
