@@ -22,6 +22,7 @@ const Index: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [sendingAlert, setSendingAlert] = useState(false);
+  const [sharingCount, setSharingCount] = useState(0);
 
   // Handle foreground push notifications - only trigger alert if NOT already shown via realtime
   const handleNotificationReceived = useCallback((payload: any) => {
@@ -49,6 +50,23 @@ const Index: React.FC = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, [user]);
+
+  // Track how many members are currently sharing location
+  useEffect(() => {
+    if (!user) return;
+    const fetchCount = async () => {
+      const { count } = await supabase
+        .from('shared_locations')
+        .select('*', { count: 'exact', head: true });
+      setSharingCount(count || 0);
+    };
+    fetchCount();
+    const channel = supabase
+      .channel('shared-locations-count')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'shared_locations' }, fetchCount)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   if (loading) {
@@ -133,10 +151,13 @@ const Index: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={() => navigate('/locations')}
-            className="text-muted-foreground hover:text-foreground hover:bg-secondary"
+            className="relative text-muted-foreground hover:text-foreground hover:bg-secondary"
             title="Live locations"
           >
-            <MapPin className="w-5 h-5" />
+            <MapPin className={`w-5 h-5 ${sharingCount > 0 ? 'text-yellow-400 animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]' : ''}`} />
+            {sharingCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
+            )}
           </Button>
           {isAdmin && (
             <Button
