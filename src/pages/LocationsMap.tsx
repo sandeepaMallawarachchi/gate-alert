@@ -234,6 +234,11 @@ const LocationsMap: React.FC = () => {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         await upsertMyLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, false);
+        try {
+          await supabase.functions.invoke('send-push-notification', { body: { type: 'location_share' } });
+        } catch (e) {
+          console.error('Push notify failed:', e);
+        }
         toast.success('Location shared');
         setBusy(false);
       },
@@ -251,11 +256,22 @@ const LocationsMap: React.FC = () => {
       return;
     }
     setBusy(true);
+    let notified = false;
     watchIdRef.current = navigator.geolocation.watchPosition(
       async (pos) => {
         await upsertMyLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, true);
         setIsLive(true);
         setBusy(false);
+        if (!notified) {
+          notified = true;
+          try {
+            await supabase.functions.invoke('send-push-notification', {
+              body: { type: 'location_share', title: '📍 Live location', body: 'is sharing live location' },
+            });
+          } catch (e) {
+            console.error('Push notify failed:', e);
+          }
+        }
       },
       (err) => {
         toast.error(err.message || 'Location error');

@@ -53,24 +53,24 @@ const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
 onBackgroundMessage(messaging, (payload) => {
-  // This handles data-only messages when app is in background
-  // Data-only messages give us full control over notification display
   const data = payload.data as any;
-  const title = data?.title || '🚨 Gate Alert!';
-  const body = data?.body || 'Someone is requesting gate access!';
+  const type = data?.type || 'gate_alert';
+  const isLocation = type === 'location_share';
+  const title = data?.title || (isLocation ? '📍 Location shared' : '🚨 Gate Alert!');
+  const body = data?.body || (isLocation ? 'Someone shared their location' : 'Someone is requesting gate access!');
   const senderAvatar = data?.sender_avatar as string | undefined;
+  const tag = data?.tag || (isLocation ? 'location-share' : 'gate-alert');
+  const url = data?.url || (isLocation ? '/locations' : '/');
 
   const options: any = {
     body,
     icon: senderAvatar || '/pwa-192x192.png',
     badge: '/pwa-192x192.png',
-    vibrate: [500, 200, 500, 200, 500],
-    requireInteraction: true,
-    tag: 'gate-alert',
+    vibrate: isLocation ? [200, 100, 200] : [500, 200, 500, 200, 500],
+    requireInteraction: !isLocation,
+    tag,
     renotify: true,
-    data: {
-      url: '/',
-    },
+    data: { url },
   };
 
   void self.registration.showNotification(title, options);
