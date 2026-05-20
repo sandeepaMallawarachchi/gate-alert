@@ -12,8 +12,8 @@ const AlertOverlay: React.FC<AlertOverlayProps> = ({ isOpen, onClose, senderName
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
-  const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const frequencyIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const vibrationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const frequencyIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopAlarm = useCallback(() => {
     // Stop oscillator

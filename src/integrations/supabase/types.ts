@@ -74,6 +74,39 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_locations: {
+        Row: {
+          accuracy: number | null
+          expires_at: string | null
+          id: string
+          is_live: boolean
+          latitude: number
+          longitude: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          expires_at?: string | null
+          id?: string
+          is_live?: boolean
+          latitude: number
+          longitude: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          expires_at?: string | null
+          id?: string
+          is_live?: boolean
+          latitude?: number
+          longitude?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
