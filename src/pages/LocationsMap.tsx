@@ -164,7 +164,12 @@ const LocationsMap: React.FC = () => {
             circle.appendChild(dot);
           }
 
-          const infoContent = `<div style="color:#000;font-family:system-ui;font-size:13px;padding:4px 2px;"><strong>${name}</strong><br/>${loc.is_live ? 'Live sharing' : 'Shared once'}<br/><small>${new Date(loc.updated_at).toLocaleTimeString()}</small></div>`;
+          const hue = name.split('').reduce((a: number, b: string) => a + b.charCodeAt(0), 0) % 360;
+          const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+          const avatarHtml = avatarUrl
+            ? `<img src="${avatarUrl}" alt="${name}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;" />`
+            : `<div style="width:64px;height:64px;border-radius:50%;background:hsl(${hue},55%,45%);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;font-family:system-ui,sans-serif;border:2px solid #e5e7eb;">${initials}</div>`;
+          const infoContent = `<div style="color:#000;font-family:system-ui;font-size:13px;padding:6px 4px;display:flex;align-items:center;gap:10px;min-width:180px;">${avatarHtml}<div><strong style="font-size:14px;">${name}</strong><br/>${loc.is_live ? '<span style="color:#ef4444;">● Live sharing</span>' : 'Shared once'}<br/><small style="color:#666;">${new Date(loc.updated_at).toLocaleTimeString()}</small></div></div>`;
           const infoWindow = new g.maps.InfoWindow({ content: infoContent });
           div.addEventListener('click', () => {
             infoWindow.setPosition((overlay as any).position_);
