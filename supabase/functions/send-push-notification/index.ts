@@ -144,6 +144,18 @@ Deno.serve(async (req) => {
     const senderName = profile.full_name || 'Unknown';
     const senderAvatar = profile.avatar_url || '';
 
+    // Optional body params to customize the notification (backward compatible)
+    let bodyJson: any = {};
+    try { bodyJson = await req.json(); } catch { bodyJson = {}; }
+    const notifType = (bodyJson?.type as string) || 'gate_alert';
+    const isLocation = notifType === 'location_share';
+    const title = (bodyJson?.title as string) || (isLocation ? '📍 Location shared' : '🚨 Gate Alert!');
+    const body = (bodyJson?.body as string) || (isLocation
+      ? `${senderName} shared their location`
+      : `${senderName} is requesting gate access!`);
+    const tag = (bodyJson?.tag as string) || (isLocation ? 'location-share' : 'gate-alert');
+    const url = (bodyJson?.url as string) || (isLocation ? '/locations' : '/');
+
     const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
     if (!serviceAccountJson) {
       throw new Error('FIREBASE_SERVICE_ACCOUNT not configured');
@@ -189,9 +201,11 @@ Deno.serve(async (req) => {
                 sender_id: userId,
                 sender_name: senderName,
                 sender_avatar: senderAvatar,
-                type: 'gate_alert',
-                title: '🚨 Gate Alert!',
-                body: `${senderName} is requesting gate access!`,
+                type: notifType,
+                title,
+                body,
+                tag,
+                url,
               },
               android: {
                 priority: 'high',
