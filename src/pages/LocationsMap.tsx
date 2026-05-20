@@ -113,10 +113,11 @@ const LocationsMap: React.FC = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user, fetchLocations, refreshProfiles]);
 
-  // Render/update markers
+  // Render/update avatar markers
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
     const g = (window as any).google;
+    const map = mapRef.current;
     const seen = new Set<string>();
     const bounds = new g.maps.LatLngBounds();
     let hasPoints = false;
@@ -125,40 +126,91 @@ const LocationsMap: React.FC = () => {
       seen.add(loc.user_id);
       const p = profiles[loc.user_id];
       const name = p?.full_name || 'Member';
-      const pos = { lat: Number(loc.latitude), lng: Number(loc.longitude) };
+      const avatarUrl = p?.avatar_url;
+      const pos = new g.maps.LatLng(Number(loc.latitude), Number(loc.longitude));
       hasPoints = true;
       bounds.extend(pos);
 
-      if (markersRef.current[loc.user_id]) {
-        markersRef.current[loc.user_id].setPosition(pos);
-        markersRef.current[loc.user_id].setTitle(`${name}${loc.is_live ? ' (live)' : ''}`);
+      if (overlaysRef.current[loc.user_id]) {
+        overlaysRef.current[loc.user_id].setPosition(pos);
       } else {
-        const marker = new g.maps.Marker({
-          position: pos,
-          map: mapRef.current,
-          title: `${name}${loc.is_live ? ' (live)' : ''}`,
-          label: loc.is_live
-            ? { text: '●', color: '#ef4444', fontSize: '20px', fontWeight: 'bold' }
-            : undefined,
-        });
-        const info = new g.maps.InfoWindow({
-          content: `<div style="color:#000;font-family:system-ui;font-size:13px"><strong>${name}</strong><br/>${loc.is_live ? 'Live sharing' : 'Shared once'}<br/><small>${new Date(loc.updated_at).toLocaleTimeString()}</small></div>`,
-        });
-        marker.addListener('click', () => info.open({ map: mapRef.current, anchor: marker }));
-        markersRef.current[loc.user_id] = marker;
+        const overlay = new g.maps.OverlayView();
+        (overlay as any).position_ = pos;
+
+        overlay.onAdd = function () {
+          const div = document.createElement('div');
+          div.style.cssText = 'position:absolute;cursor:pointer;transform:translate(-50%,-100%);z-index:1;';
+
+          const size = 44;
+          const circle = document.createElement('div');
+          circle.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;font-family:system-ui,sans-serif;position:relative;`;
+
+          if (avatarUrl) {
+            circle.style.backgroundImage = `url(${avatarUrl})`;
+            circle.style.backgroundSize = 'cover';
+            circle.style.backgroundPosition = 'center';
+          } else {
+            const hue = name.split('').reduce((a, b) => a + b.charCodeAt(0), 0) % 360;
+            circle.style.backgroundColor = `hsl(${hue}, 55%, 45%)`;
+            const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+            circle.textContent = initials;
+          }
+
+          div.appendChild(circle);
+
+          if (loc.is_live) {
+            const dot = document.createElement('div');
+            dot.style.cssText = 'position:absolute;bottom:1px;right:1px;width:14px;height:14px;border-radius:50%;background:#ef4444;border:2.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.3);';
+            circle.appendChild(dot);
+          }
+
+          const infoContent = `<div style="color:#000;font-family:system-ui;font-size:13px;padding:4px 2px;"><strong>${name}</strong><br/>${loc.is_live ? 'Live sharing' : 'Shared once'}<br/><small>${new Date(loc.updated_at).toLocaleTimeString()}</small></div>`;
+          const infoWindow = new g.maps.InfoWindow({ content: infoContent });
+          div.addEventListener('click', () => {
+            infoWindow.setPosition((overlay as any).position_);
+            infoWindow.open({ map, shouldFocus: false });
+          });
+
+          (overlay as any).div_ = div;
+          this.getPanes().overlayMouseTarget.appendChild(div);
+        };
+
+        overlay.draw = function () {
+          const projection = this.getProjection();
+          if (!projection) return;
+          const point = projection.fromLatLngToDivPixel((overlay as any).position_);
+          if (point && (overlay as any).div_) {
+            (overlay as any).div_.style.left = point.x + 'px';
+            (overlay as any).div_.style.top = point.y + 'px';
+          }
+        };
+
+        overlay.onRemove = function () {
+          if ((overlay as any).div_?.parentNode) {
+            (overlay as any).div_.parentNode.removeChild((overlay as any).div_);
+          }
+        };
+
+        (overlay as any).setPosition = function (newPos: any) {
+          (overlay as any).position_ = newPos;
+          overlay.draw();
+        };
+
+        overlay.setMap(map);
+        overlaysRef.current[loc.user_id] = overlay;
       }
     });
 
-    // Cleanup removed markers
-    Object.keys(markersRef.current).forEach((uid) => {
+    // Cleanup removed overlays
+    Object.keys(overlaysRef.current).forEach((uid) => {
       if (!seen.has(uid)) {
-        markersRef.current[uid].setMap(null);
-        delete markersRef.current[uid];
+        overlaysRef.current[uid].setMap(null);
+        delete overlaysRef.current[uid];
       }
     });
 
     if (hasPoints) {
-      mapRef.current.fitBounds(bounds, 80);
+      map.fitBounds(bounds, 80);
       if (locations.length === 1) {
         setTimeout(() => mapRef.current?.setZoom(15), 200);
       }
