@@ -43,6 +43,9 @@ const LocationsMap: React.FC = () => {
   const mapRef = useRef<any>(null);
   const overlaysRef = useRef<Record<string, any>>({});
   const watchIdRef = useRef<number | null>(null);
+  const wakeLockRef = useRef<any>(null);
+  const lastPosRef = useRef<{ lat: number; lng: number; acc: number } | null>(null);
+  const keepAliveRef = useRef<number | null>(null);
   const [locations, setLocations] = useState<SharedLocation[]>([]);
   const [profiles, setProfiles] = useState<Record<string, { full_name: string; avatar_url: string | null }>>({});
   const [isLive, setIsLive] = useState(false);
