@@ -43,6 +43,9 @@ const LocationsMap: React.FC = () => {
   const mapRef = useRef<any>(null);
   const overlaysRef = useRef<Record<string, any>>({});
   const watchIdRef = useRef<number | null>(null);
+  const wakeLockRef = useRef<any>(null);
+  const lastPosRef = useRef<{ lat: number; lng: number; acc: number } | null>(null);
+  const keepAliveRef = useRef<number | null>(null);
   const [locations, setLocations] = useState<SharedLocation[]>([]);
   const [profiles, setProfiles] = useState<Record<string, { full_name: string; avatar_url: string | null }>>({});
   const [isLive, setIsLive] = useState(false);
@@ -258,36 +261,69 @@ const LocationsMap: React.FC = () => {
     );
   };
 
+  const acquireWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        wakeLockRef.current.addEventListener?.('release', () => {
+          // released by browser (tab hidden); will re-acquire on visibility change
+        });
+      }
+    } catch (e) {
+      console.warn('Wake lock failed:', e);
+    }
+  };
+
+  const releaseWakeLock = async () => {
+    try { await wakeLockRef.current?.release?.(); } catch {}
+    wakeLockRef.current = null;
+  };
+
+  const startWatch = () => {
+    if (watchIdRef.current !== null) return;
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      async (pos) => {
+        lastPosRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
+        await upsertMyLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, true);
+        setIsLive(true);
+        setBusy(false);
+      },
+      (err) => {
+        console.warn('watch error', err);
+        setBusy(false);
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 }
+    );
+  };
+
   const startLive = async () => {
     if (!navigator.geolocation) {
       toast.error('Geolocation not supported');
       return;
     }
     setBusy(true);
-    let notified = false;
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      async (pos) => {
-        await upsertMyLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, true);
-        setIsLive(true);
-        setBusy(false);
-        if (!notified) {
-          notified = true;
-          try {
-            await supabase.functions.invoke('send-push-notification', {
-              body: { type: 'location_share', title: '📍 Live location', body: 'is sharing live location' },
-            });
-          } catch (e) {
-            console.error('Push notify failed:', e);
-          }
+    startWatch();
+    await acquireWakeLock();
+
+    // Keep-alive: re-upsert last known position every 20s so updated_at stays fresh
+    // even if the browser throttles watchPosition in the background.
+    if (keepAliveRef.current === null) {
+      keepAliveRef.current = window.setInterval(() => {
+        if (lastPosRef.current) {
+          const { lat, lng, acc } = lastPosRef.current;
+          upsertMyLocation(lat, lng, acc, true);
         }
-      },
-      (err) => {
-        toast.error(err.message || 'Location error');
-        setBusy(false);
-      },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
-    );
-    toast.success('Live sharing started');
+      }, 20000);
+    }
+
+    try {
+      await supabase.functions.invoke('send-push-notification', {
+        body: { type: 'location_share', title: '📍 Live location', body: 'is sharing live location' },
+      });
+    } catch (e) {
+      console.error('Push notify failed:', e);
+    }
+    toast.success('Live sharing started — keep this tab open');
   };
 
   const stopLive = async () => {
@@ -295,6 +331,12 @@ const LocationsMap: React.FC = () => {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
+    if (keepAliveRef.current !== null) {
+      clearInterval(keepAliveRef.current);
+      keepAliveRef.current = null;
+    }
+    await releaseWakeLock();
+    lastPosRef.current = null;
     if (user) {
       await supabase.from('shared_locations').delete().eq('user_id', user.id);
     }
@@ -302,9 +344,28 @@ const LocationsMap: React.FC = () => {
     toast.success('Live sharing stopped');
   };
 
+  // Re-acquire wake lock and restart watch when tab becomes visible again
+  useEffect(() => {
+    const onVisible = async () => {
+      if (document.visibilityState === 'visible' && isLive) {
+        if (!wakeLockRef.current) await acquireWakeLock();
+        // Re-prime the watch in case the browser stopped delivering updates
+        if (watchIdRef.current !== null) {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+          watchIdRef.current = null;
+        }
+        startWatch();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [isLive]);
+
   useEffect(() => {
     return () => {
       if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
+      if (keepAliveRef.current !== null) clearInterval(keepAliveRef.current);
+      releaseWakeLock();
     };
   }, []);
 
