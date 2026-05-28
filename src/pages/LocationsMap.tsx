@@ -110,7 +110,10 @@ const LocationsMap: React.FC = () => {
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    // Fallback periodic refresh to catch background deletions (e.g. cron cleanup)
+    const interval = setInterval(fetchLocations, 30000);
+
+    return () => { supabase.removeChannel(channel); clearInterval(interval); };
   }, [user, fetchLocations, refreshProfiles]);
 
   // Render/update avatar markers
