@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { LogOut, Loader2, Users, MapPin, Settings, Clock } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LogOut, Loader2, Users, MapPin, Settings, Clock, Bell } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import BuzzerButton from '@/components/BuzzerButton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AlertOverlay from '@/components/AlertOverlay';
 import SettingsModal from '@/components/SettingsModal';
 import InstallInstructionsModal from '@/components/InstallInstructionsModal';
@@ -215,7 +215,53 @@ const Index: React.FC = () => {
           <p className="text-muted-foreground">Press the button to request gate opening</p>
         </div>
 
-        <BuzzerButton onClick={handleBuzzerClick} loading={sendingAlert} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
+          <Card
+            className="p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-secondary/50 transition-colors border-primary/30"
+            onClick={handleBuzzerClick}
+          >
+            <div className="relative flex items-center justify-center">
+              {!sendingAlert && (
+                <>
+                  <div className="absolute w-56 h-56 rounded-full border-2 border-primary/30 ring-expand" />
+                  <div className="absolute w-56 h-56 rounded-full border-2 border-primary/20 ring-expand" style={{ animationDelay: '0.5s' }} />
+                </>
+              )}
+              {sendingAlert && (
+                <div className="absolute w-56 h-56 rounded-full border-4 border-primary/50 animate-pulse" />
+              )}
+              <button
+                disabled={sendingAlert}
+                className="relative w-44 h-44 rounded-full bg-gradient-to-br from-primary to-alert-glow buzzer-glow transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center border-4 border-primary/50 shadow-[inset_0_-8px_20px_rgba(0,0,0,0.3)]"
+              >
+                <div className="flex flex-col items-center gap-3">
+                  {sendingAlert ? (
+                    <Loader2 className="w-14 h-14 text-primary-foreground drop-shadow-lg animate-spin" />
+                  ) : (
+                    <Bell className="w-14 h-14 text-primary-foreground drop-shadow-lg" />
+                  )}
+                  <span className="text-lg font-bold text-primary-foreground tracking-wider uppercase">
+                    {sendingAlert ? 'SENDING...' : 'OPEN GATE'}
+                  </span>
+                </div>
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground text-center">Send gate alert to all members</p>
+          </Card>
+
+          <Card
+            className="p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-secondary/50 transition-colors"
+            onClick={() => navigate('/attendance')}
+          >
+            <div className="relative w-44 h-44 rounded-full bg-secondary border-4 border-primary/30 flex items-center justify-center">
+              <Clock className="w-16 h-16 text-primary" />
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-foreground">Mark Attendance</p>
+              <p className="text-sm text-muted-foreground">Check in / check out</p>
+            </div>
+          </Card>
+        </div>
 
         <p className="mt-12 text-sm text-muted-foreground text-center max-w-xs">
           All members will be notified when you press the button
