@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, LogIn, LogOut, MapPin, Loader2, ShieldAlert, Users } from 'lucide-react';
+import { ArrowLeft, Clock, LogIn, LogOut, MapPin, Loader2, ShieldAlert, Users, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useGeofence, CompanyLocation } from '@/hooks/useGeofence';
 import { toast } from 'sonner';
 import CompanyLocationPicker from '@/components/CompanyLocationPicker';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import * as XLSX from 'xlsx';
 
 interface AttendanceRow {
   id: string;
@@ -96,6 +98,53 @@ const Attendance: React.FC = () => {
     if (user) loadRecords();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, viewAll, isAdmin]);
+
+  const exportXlsx = async (scope: 'mine' | 'all') => {
+    if (!user) return;
+    try {
+      let query = supabase
+        .from('attendance')
+        .select('user_id, date, check_in_at, check_out_at, check_in_lat, check_in_lng, check_out_lat, check_out_lng')
+        .order('date', { ascending: false });
+      if (scope === 'mine') query = query.eq('user_id', user.id);
+      const { data, error } = await query;
+      if (error) throw error;
+      const rows = data ?? [];
+
+      let nameMap: Record<string, string> = {};
+      if (scope === 'all' && rows.length) {
+        const ids = Array.from(new Set(rows.map((r: any) => r.user_id)));
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, email')
+          .in('user_id', ids);
+        (profs ?? []).forEach((p: any) => {
+          nameMap[p.user_id] = p.full_name || p.email || p.user_id;
+        });
+      }
+
+      const sheetRows = rows.map((r: any) => ({
+        Member: scope === 'all' ? (nameMap[r.user_id] || r.user_id) : 'Me',
+        Date: r.date,
+        'Check In': r.check_in_at ? new Date(r.check_in_at).toLocaleString() : '',
+        'Check Out': r.check_out_at ? new Date(r.check_out_at).toLocaleString() : '',
+        'In Lat': r.check_in_lat ?? '',
+        'In Lng': r.check_in_lng ?? '',
+        'Out Lat': r.check_out_lat ?? '',
+        'Out Lng': r.check_out_lng ?? '',
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(sheetRows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+      const stamp = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `attendance-${scope}-${stamp}.xlsx`);
+      toast.success('Exported');
+    } catch (e: any) {
+      toast.error(e.message || 'Export failed');
+    }
+  };
+
 
   const handleCheckIn = async () => {
     if (!user || !geo.position) return;
@@ -251,12 +300,28 @@ const Attendance: React.FC = () => {
           <h2 className="text-sm font-semibold text-foreground">
             {viewAll && isAdmin ? 'All members' : 'Your history'}
           </h2>
-          {isAdmin && (
-            <Button variant="ghost" size="sm" onClick={() => setViewAll((v) => !v)}>
-              <Users className="w-4 h-4 mr-2" />
-              {viewAll ? 'Show mine' : 'View all'}
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => exportXlsx('mine')}>Download mine</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportXlsx('all')}>Download all</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {isAdmin && (
+              <Button variant="ghost" size="sm" onClick={() => setViewAll((v) => !v)}>
+                <Users className="w-4 h-4 mr-2" />
+                {viewAll ? 'Show mine' : 'View all'}
+              </Button>
+            )}
+          </div>
         </div>
 
         <Card className="bg-card border-border divide-y divide-border">
