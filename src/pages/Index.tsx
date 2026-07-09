@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { LogOut, Loader2, Users, MapPin, Settings, Clock } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LogOut, Loader2, Users, MapPin, Settings, Clock, Bell } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import BuzzerButton from '@/components/BuzzerButton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AlertOverlay from '@/components/AlertOverlay';
 import SettingsModal from '@/components/SettingsModal';
 import InstallInstructionsModal from '@/components/InstallInstructionsModal';
