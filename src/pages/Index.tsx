@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { LogOut, Loader2, Users, MapPin } from 'lucide-react';
+import { LogOut, Loader2, Users, MapPin, Settings } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import BuzzerButton from '@/components/BuzzerButton';
@@ -184,16 +184,19 @@ const Index: React.FC = () => {
           </Button>
         </div>
 
-        {/* Mobile/tablet: keep logout in header, other icons move to bottom nav */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleLogout}
-          className="lg:hidden text-muted-foreground hover:text-destructive hover:bg-secondary"
-          title="Log out"
-        >
-          <LogOut className="w-5 h-5" />
-        </Button>
+        {/* Mobile/tablet header: notification stays here, other icons live in bottom nav */}
+        <div className="lg:hidden flex items-center gap-2">
+          <NotificationPermission onNotificationReceived={handleNotificationReceived} />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="text-muted-foreground hover:text-destructive hover:bg-secondary"
+            title="Log out"
+          >
+            <LogOut className="w-5 h-5" />
+          </Button>
+        </div>
       </header>
 
       {/* Main Content */}
@@ -216,7 +219,6 @@ const Index: React.FC = () => {
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex items-center justify-around h-16 px-4">
-          <NotificationPermission onNotificationReceived={handleNotificationReceived} />
           <Button
             variant="ghost"
             size="icon"
@@ -240,6 +242,15 @@ const Index: React.FC = () => {
               <Users className="w-6 h-6" />
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowSettings(true)}
+            className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
+            title="Profile settings"
+          >
+            <Settings className="w-6 h-6" />
+          </Button>
         </div>
       </nav>
 
