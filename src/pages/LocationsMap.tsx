@@ -405,7 +405,7 @@ const LocationsMap: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-1 relative">
+      <main className="flex-1 relative pb-20 lg:pb-0">
         <div ref={mapDivRef} className="absolute inset-0" />
         {!mapReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60">
