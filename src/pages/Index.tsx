@@ -154,6 +154,15 @@ const Index: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
+            onClick={() => navigate('/attendance')}
+            className="text-muted-foreground hover:text-foreground hover:bg-secondary"
+            title="Attendance"
+          >
+            <Clock className="w-5 h-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => navigate('/locations')}
             className="relative text-muted-foreground hover:text-foreground hover:bg-secondary"
             title="Live locations"
@@ -162,15 +171,6 @@ const Index: React.FC = () => {
             {sharingCount > 0 && (
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
             )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/attendance')}
-            className="text-muted-foreground hover:text-foreground hover:bg-secondary"
-            title="Attendance"
-          >
-            <Clock className="w-5 h-5" />
           </Button>
           {isAdmin && (
             <Button
@@ -231,6 +231,15 @@ const Index: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
+            onClick={() => navigate('/attendance')}
+            className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
+            title="Attendance"
+          >
+            <Clock className="w-6 h-6" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => navigate('/locations')}
             className="relative h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
             title="Live locations"
@@ -239,15 +248,6 @@ const Index: React.FC = () => {
             {sharingCount > 0 && (
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
             )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/attendance')}
-            className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
-            title="Attendance"
-          >
-            <Clock className="w-6 h-6" />
           </Button>
           {isAdmin && (
             <Button
