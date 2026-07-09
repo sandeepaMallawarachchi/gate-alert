@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
-import { DoorOpen, X } from 'lucide-react';
+import { Bell, X } from 'lucide-react';
 
 interface AlertOverlayProps {
   isOpen: boolean;
