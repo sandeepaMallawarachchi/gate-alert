@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, LogIn, LogOut, MapPin, Loader2, ShieldAlert, Users } from 'lucide-react';
+import { ArrowLeft, Clock, LogIn, LogOut, MapPin, Loader2, ShieldAlert, Users, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useGeofence, CompanyLocation } from '@/hooks/useGeofence';
 import { toast } from 'sonner';
 import CompanyLocationPicker from '@/components/CompanyLocationPicker';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import * as XLSX from 'xlsx';
 
 interface AttendanceRow {
   id: string;
