@@ -104,7 +104,7 @@ const Attendance: React.FC = () => {
     try {
       let query = supabase
         .from('attendance')
-        .select('user_id, date, check_in_at, check_out_at, check_in_lat, check_in_lng, check_out_lat, check_out_lng')
+        .select('user_id, date, check_in_at, check_out_at')
         .order('date', { ascending: false });
       if (scope === 'mine') query = query.eq('user_id', user.id);
       const { data, error } = await query;
@@ -128,10 +128,6 @@ const Attendance: React.FC = () => {
         Date: r.date,
         'Check In': r.check_in_at ? new Date(r.check_in_at).toLocaleString() : '',
         'Check Out': r.check_out_at ? new Date(r.check_out_at).toLocaleString() : '',
-        'In Lat': r.check_in_lat ?? '',
-        'In Lng': r.check_in_lng ?? '',
-        'Out Lat': r.check_out_lat ?? '',
-        'Out Lng': r.check_out_lng ?? '',
       }));
 
       const ws = XLSX.utils.json_to_sheet(sheetRows);
