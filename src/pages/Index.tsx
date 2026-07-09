@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { LogOut, Loader2, Users, MapPin, Settings } from 'lucide-react';
+import { LogOut, Loader2, Users, MapPin, Settings, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import BuzzerButton from '@/components/BuzzerButton';
@@ -163,6 +163,15 @@ const Index: React.FC = () => {
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
             )}
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/attendance')}
+            className="text-muted-foreground hover:text-foreground hover:bg-secondary"
+            title="Attendance"
+          >
+            <Clock className="w-5 h-5" />
+          </Button>
           {isAdmin && (
             <Button
               variant="ghost"
@@ -230,6 +239,15 @@ const Index: React.FC = () => {
             {sharingCount > 0 && (
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
             )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/attendance')}
+            className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
+            title="Attendance"
+          >
+            <Clock className="w-6 h-6" />
           </Button>
           {isAdmin && (
             <Button
