@@ -209,62 +209,104 @@ const Index: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 pb-24 lg:pb-4">
-        <div className="text-center mb-12">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Gate Access</h1>
-          <p className="text-muted-foreground">Press the button to request gate opening</p>
+      <main className="flex-1 flex flex-col items-center justify-start px-4 pt-8 pb-24 lg:pb-4">
+        <div className="text-center mb-10">
+          <h1 className="text-2xl font-bold text-foreground mb-1">
+            {profile?.full_name ? `Hello, ${profile.full_name.split(' ')[0]}` : 'Dashboard'}
+          </h1>
+          <p className="text-muted-foreground">Quick actions for your team</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
+        <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+          {/* Send Alert */}
           <Card
-            className="p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-secondary/50 transition-colors border-primary/30"
+            className="col-span-2 p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-secondary/50 transition-colors border-primary/30"
             onClick={handleBuzzerClick}
           >
             <div className="relative flex items-center justify-center">
               {!sendingAlert && (
                 <>
-                  <div className="absolute w-56 h-56 rounded-full border-2 border-primary/30 ring-expand" />
-                  <div className="absolute w-56 h-56 rounded-full border-2 border-primary/20 ring-expand" style={{ animationDelay: '0.5s' }} />
+                  <div className="absolute w-40 h-40 rounded-full border-2 border-primary/30 ring-expand" />
+                  <div className="absolute w-40 h-40 rounded-full border-2 border-primary/20 ring-expand" style={{ animationDelay: '0.5s' }} />
                 </>
               )}
               {sendingAlert && (
-                <div className="absolute w-56 h-56 rounded-full border-4 border-primary/50 animate-pulse" />
+                <div className="absolute w-40 h-40 rounded-full border-4 border-primary/50 animate-pulse" />
               )}
               <button
                 disabled={sendingAlert}
-                className="relative w-44 h-44 rounded-full bg-gradient-to-br from-primary to-alert-glow buzzer-glow transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center border-4 border-primary/50 shadow-[inset_0_-8px_20px_rgba(0,0,0,0.3)]"
+                className="relative w-32 h-32 rounded-full bg-gradient-to-br from-primary to-alert-glow buzzer-glow transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center border-4 border-primary/50 shadow-[inset_0_-8px_20px_rgba(0,0,0,0.3)]"
               >
-                <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col items-center gap-2">
                   {sendingAlert ? (
-                    <Loader2 className="w-14 h-14 text-primary-foreground drop-shadow-lg animate-spin" />
+                    <Loader2 className="w-10 h-10 text-primary-foreground drop-shadow-lg animate-spin" />
                   ) : (
-                    <Bell className="w-14 h-14 text-primary-foreground drop-shadow-lg" />
+                    <Bell className="w-10 h-10 text-primary-foreground drop-shadow-lg" />
                   )}
-                  <span className="text-lg font-bold text-primary-foreground tracking-wider uppercase">
-                    {sendingAlert ? 'SENDING...' : 'OPEN GATE'}
+                  <span className="text-sm font-bold text-primary-foreground tracking-wider uppercase">
+                    {sendingAlert ? 'Sending...' : 'Alert'}
                   </span>
                 </div>
               </button>
             </div>
-            <p className="text-sm text-muted-foreground text-center">Send gate alert to all members</p>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-foreground">Send Alert</p>
+              <p className="text-sm text-muted-foreground">Notify all members instantly</p>
+            </div>
           </Card>
 
+          {/* Mark Attendance */}
           <Card
-            className="p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-secondary/50 transition-colors"
+            className="p-5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-secondary/50 transition-colors"
             onClick={() => navigate('/attendance')}
           >
-            <div className="relative w-44 h-44 rounded-full bg-secondary border-4 border-primary/30 flex items-center justify-center">
-              <Clock className="w-16 h-16 text-primary" />
+            <div className="relative w-16 h-16 rounded-full bg-secondary border-2 border-primary/30 flex items-center justify-center">
+              <Clock className="w-8 h-8 text-primary" />
             </div>
             <div className="text-center">
-              <p className="text-lg font-semibold text-foreground">Mark Attendance</p>
-              <p className="text-sm text-muted-foreground">Check in / check out</p>
+              <p className="text-base font-semibold text-foreground">Attendance</p>
+              <p className="text-xs text-muted-foreground">Check in / out</p>
             </div>
           </Card>
+
+          {/* Live Locations */}
+          <Card
+            className="p-5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-secondary/50 transition-colors"
+            onClick={() => navigate('/locations')}
+          >
+            <div className="relative w-16 h-16 rounded-full bg-secondary border-2 border-primary/30 flex items-center justify-center">
+              <MapPin className={`w-8 h-8 ${sharingCount > 0 ? 'text-yellow-400 animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]' : 'text-primary'}`} />
+              {sharingCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-400 animate-ping" />
+              )}
+            </div>
+            <div className="text-center">
+              <p className="text-base font-semibold text-foreground">Locations</p>
+              <p className="text-xs text-muted-foreground">
+                {sharingCount > 0 ? `${sharingCount} sharing` : 'Live map'}
+              </p>
+            </div>
+          </Card>
+
+          {/* Admin Users */}
+          {isAdmin && (
+            <Card
+              className="col-span-2 p-5 flex flex-row items-center gap-4 cursor-pointer hover:bg-secondary/50 transition-colors"
+              onClick={() => setShowAdmin(true)}
+            >
+              <div className="relative w-14 h-14 rounded-full bg-secondary border-2 border-primary/30 flex items-center justify-center shrink-0">
+                <Users className="w-7 h-7 text-primary" />
+              </div>
+              <div>
+                <p className="text-base font-semibold text-foreground">Manage Team</p>
+                <p className="text-xs text-muted-foreground">Add users, assign admin access</p>
+              </div>
+            </Card>
+          )}
         </div>
 
-        <p className="mt-12 text-sm text-muted-foreground text-center max-w-xs">
-          All members will be notified when you press the button
+        <p className="mt-10 text-sm text-muted-foreground text-center max-w-xs">
+          Tap any action to get started
         </p>
       </main>
 

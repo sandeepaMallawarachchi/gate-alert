@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
-import { DoorOpen, X } from 'lucide-react';
+import { Bell, X } from 'lucide-react';
 
 interface AlertOverlayProps {
   isOpen: boolean;
@@ -130,17 +130,17 @@ const AlertOverlay: React.FC<AlertOverlayProps> = ({ isOpen, onClose, senderName
                 className="w-full h-full object-cover"
               />
             ) : (
-              <DoorOpen className="w-20 h-20 text-primary-foreground" />
+              <Bell className="w-20 h-20 text-primary-foreground" />
             )}
           </div>
         </div>
         
         {/* Message */}
         <h1 className="text-5xl md:text-7xl font-black text-primary-foreground tracking-tight mb-4 drop-shadow-lg">
-          OPEN THE GATE
+          ALERT
         </h1>
         <p className="text-xl md:text-2xl text-primary-foreground/80 font-medium">
-          {senderName ? `${senderName} requests access` : 'Gate access requested'}
+          {senderName ? `${senderName} needs attention` : 'Team alert received'}
         </p>
         
         {/* Tap to dismiss hint */}
