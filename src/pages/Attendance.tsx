@@ -253,12 +253,28 @@ const Attendance: React.FC = () => {
           <h2 className="text-sm font-semibold text-foreground">
             {viewAll && isAdmin ? 'All members' : 'Your history'}
           </h2>
-          {isAdmin && (
-            <Button variant="ghost" size="sm" onClick={() => setViewAll((v) => !v)}>
-              <Users className="w-4 h-4 mr-2" />
-              {viewAll ? 'Show mine' : 'View all'}
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => exportXlsx('mine')}>Download mine</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportXlsx('all')}>Download all</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {isAdmin && (
+              <Button variant="ghost" size="sm" onClick={() => setViewAll((v) => !v)}>
+                <Users className="w-4 h-4 mr-2" />
+                {viewAll ? 'Show mine' : 'View all'}
+              </Button>
+            )}
+          </div>
         </div>
 
         <Card className="bg-card border-border divide-y divide-border">
