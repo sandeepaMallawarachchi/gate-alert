@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import LocationsMap from "./pages/LocationsMap";
 import Attendance from "./pages/Attendance";
 import NotFound from "./pages/NotFound";
+import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <BottomNav />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>

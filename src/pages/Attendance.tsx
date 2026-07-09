@@ -304,7 +304,7 @@ const Attendance: React.FC = () => {
             {isAdmin && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
+                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <Download className="w-4 h-4 mr-2" />
                     Export
                   </Button>
@@ -316,7 +316,11 @@ const Attendance: React.FC = () => {
               </DropdownMenu>
             )}
             {isAdmin && (
-              <Button variant="ghost" size="sm" onClick={() => setViewAll((v) => !v)}>
+              <Button
+                size="sm"
+                onClick={() => setViewAll((v) => !v)}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
                 <Users className="w-4 h-4 mr-2" />
                 {viewAll ? 'Show mine' : 'View all'}
               </Button>
