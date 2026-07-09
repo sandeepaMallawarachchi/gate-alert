@@ -149,7 +149,7 @@ const Index: React.FC = () => {
           </div>
         </button>
         
-        <div className="flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           <NotificationPermission onNotificationReceived={handleNotificationReceived} />
           <Button
             variant="ghost"
@@ -183,6 +183,17 @@ const Index: React.FC = () => {
             <LogOut className="w-5 h-5" />
           </Button>
         </div>
+
+        {/* Mobile/tablet: keep logout in header, other icons move to bottom nav */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleLogout}
+          className="lg:hidden text-muted-foreground hover:text-destructive hover:bg-secondary"
+          title="Log out"
+        >
+          <LogOut className="w-5 h-5" />
+        </Button>
       </header>
 
       {/* Main Content */}
