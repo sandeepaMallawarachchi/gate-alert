@@ -217,33 +217,33 @@ const Index: React.FC = () => {
           <p className="text-muted-foreground">Quick actions for your team</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+        <div className="grid grid-cols-2 gap-3 w-full max-w-sm px-1">
           {/* Send Alert */}
           <Card
-            className="col-span-2 p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-secondary/50 transition-colors border-primary/30"
+            className="col-span-2 p-5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-secondary/50 transition-colors border-primary/30 overflow-hidden"
             onClick={handleBuzzerClick}
           >
             <div className="relative flex items-center justify-center">
               {!sendingAlert && (
                 <>
-                  <div className="absolute w-40 h-40 rounded-full border-2 border-primary/30 ring-expand" />
-                  <div className="absolute w-40 h-40 rounded-full border-2 border-primary/20 ring-expand" style={{ animationDelay: '0.5s' }} />
+                  <div className="absolute w-32 h-32 rounded-full border-2 border-primary/30 ring-expand" />
+                  <div className="absolute w-32 h-32 rounded-full border-2 border-primary/20 ring-expand" style={{ animationDelay: '0.5s' }} />
                 </>
               )}
               {sendingAlert && (
-                <div className="absolute w-40 h-40 rounded-full border-4 border-primary/50 animate-pulse" />
+                <div className="absolute w-32 h-32 rounded-full border-4 border-primary/50 animate-pulse" />
               )}
               <button
                 disabled={sendingAlert}
-                className="relative w-32 h-32 rounded-full bg-gradient-to-br from-primary to-alert-glow buzzer-glow transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center border-4 border-primary/50 shadow-[inset_0_-8px_20px_rgba(0,0,0,0.3)]"
+                className="relative w-28 h-28 rounded-full bg-gradient-to-br from-primary to-alert-glow buzzer-glow transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center border-4 border-primary/50 shadow-[inset_0_-8px_20px_rgba(0,0,0,0.3)]"
               >
-                <div className="flex flex-col items-center gap-2">
+                <div className="flex flex-col items-center gap-1">
                   {sendingAlert ? (
-                    <Loader2 className="w-10 h-10 text-primary-foreground drop-shadow-lg animate-spin" />
+                    <Loader2 className="w-9 h-9 text-primary-foreground drop-shadow-lg animate-spin" />
                   ) : (
-                    <Bell className="w-10 h-10 text-primary-foreground drop-shadow-lg" />
+                    <Bell className="w-9 h-9 text-primary-foreground drop-shadow-lg" />
                   )}
-                  <span className="text-sm font-bold text-primary-foreground tracking-wider uppercase">
+                  <span className="text-xs font-bold text-primary-foreground tracking-wider uppercase">
                     {sendingAlert ? 'Sending...' : 'Alert'}
                   </span>
                 </div>
