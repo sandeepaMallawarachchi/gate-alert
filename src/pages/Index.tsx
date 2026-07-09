@@ -197,7 +197,7 @@ const Index: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 pb-24 lg:pb-4">
         <div className="text-center mb-12">
           <h1 className="text-2xl font-bold text-foreground mb-2">Gate Access</h1>
           <p className="text-muted-foreground">Press the button to request gate opening</p>
@@ -210,16 +210,42 @@ const Index: React.FC = () => {
         </p>
       </main>
 
-      {/* Alert Overlay */}
-      <AlertOverlay 
-        isOpen={showAlert} 
-        onClose={() => setShowAlert(false)} 
-        senderName={alertSenderName}
-        senderAvatar={alertSenderAvatar}
-      />
+      {/* Bottom Navigation (mobile/tablet only) */}
+      <nav
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="flex items-center justify-around h-16 px-4">
+          <NotificationPermission onNotificationReceived={handleNotificationReceived} />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/locations')}
+            className="relative h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
+            title="Live locations"
+          >
+            <MapPin className={`w-6 h-6 ${sharingCount > 0 ? 'text-yellow-400 animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]' : ''}`} />
+            {sharingCount > 0 && (
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
+            )}
+          </Button>
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowAdmin(true)}
+              className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
+              title="Manage users"
+            >
+              <Users className="w-6 h-6" />
+            </Button>
+          )}
+        </div>
+      </nav>
 
       {/* Settings Modal */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+
 
       {/* Admin Users Modal */}
       <AdminUsersModal open={showAdmin} onOpenChange={setShowAdmin} />
