@@ -243,6 +243,14 @@ const Index: React.FC = () => {
         </div>
       </nav>
 
+      {/* Alert Overlay */}
+      <AlertOverlay
+        isOpen={showAlert}
+        onClose={() => setShowAlert(false)}
+        senderName={alertSenderName}
+        senderAvatar={alertSenderAvatar}
+      />
+
       {/* Settings Modal */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
 
