@@ -34,8 +34,8 @@ const BottomNav: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const iconBtn =
-    'h-12 w-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_hsl(var(--primary)/0.4)]';
-  const activeRing = 'ring-2 ring-primary-foreground/40';
+    'h-12 w-12 rounded-xl text-foreground hover:bg-secondary hover:text-foreground';
+  const activeRing = 'ring-2 ring-primary/60 bg-secondary';
 
   if (!user) return null;
 
