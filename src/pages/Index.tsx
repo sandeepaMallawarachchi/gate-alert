@@ -222,55 +222,6 @@ const Index: React.FC = () => {
         </p>
       </main>
 
-      {/* Bottom Navigation (mobile/tablet only) */}
-      <nav
-        className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      >
-        <div className="flex items-center justify-around h-16 px-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/attendance')}
-            className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
-            title="Attendance"
-          >
-            <Clock className="w-6 h-6" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/locations')}
-            className="relative h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
-            title="Live locations"
-          >
-            <MapPin className={`w-6 h-6 ${sharingCount > 0 ? 'text-yellow-400 animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]' : ''}`} />
-            {sharingCount > 0 && (
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
-            )}
-          </Button>
-          {isAdmin && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowAdmin(true)}
-              className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
-              title="Manage users"
-            >
-              <Users className="w-6 h-6" />
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowSettings(true)}
-            className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-secondary"
-            title="Profile settings"
-          >
-            <Settings className="w-6 h-6" />
-          </Button>
-        </div>
-      </nav>
 
       {/* Alert Overlay */}
       <AlertOverlay
