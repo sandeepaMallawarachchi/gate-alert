@@ -184,16 +184,19 @@ const Index: React.FC = () => {
           </Button>
         </div>
 
-        {/* Mobile/tablet: keep logout in header, other icons move to bottom nav */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleLogout}
-          className="lg:hidden text-muted-foreground hover:text-destructive hover:bg-secondary"
-          title="Log out"
-        >
-          <LogOut className="w-5 h-5" />
-        </Button>
+        {/* Mobile/tablet header: notification stays here, other icons live in bottom nav */}
+        <div className="lg:hidden flex items-center gap-2">
+          <NotificationPermission onNotificationReceived={handleNotificationReceived} />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="text-muted-foreground hover:text-destructive hover:bg-secondary"
+            title="Log out"
+          >
+            <LogOut className="w-5 h-5" />
+          </Button>
+        </div>
       </header>
 
       {/* Main Content */}
