@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import LocationsMap from "./pages/LocationsMap";
 import Attendance from "./pages/Attendance";
 import NotFound from "./pages/NotFound";
+import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
 
