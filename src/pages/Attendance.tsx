@@ -47,7 +47,7 @@ const Attendance: React.FC = () => {
     try {
       if (typeof window === 'undefined' || !('Notification' in window)) return;
       if (Notification.permission !== 'granted') return;
-      const opts: NotificationOptions = {
+      const opts: NotificationOptions & { renotify?: boolean } = {
         body,
         tag,
         icon: '/pwa-192x192.png',
