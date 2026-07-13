@@ -43,10 +43,11 @@ const Attendance: React.FC = () => {
   const prevInRange = React.useRef<boolean | null>(null);
 
   // Fire a real FCM push to self (works when app is closed/backgrounded)
+  // Deduped server-side to one push per (user, day, tag).
   const notifySelf = async (title: string, body: string, tag: string) => {
     try {
       await supabase.functions.invoke('send-push-notification', {
-        body: { target: 'self', type: 'attendance', title, body, tag, url: '/attendance' },
+        body: { target: 'self', type: 'attendance', title, body, tag, url: '/attendance', dedupe_per_day: true },
       });
     } catch (e) {
       console.warn('notifySelf failed', e);
