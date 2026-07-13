@@ -40,6 +40,61 @@ const Attendance: React.FC = () => {
   const [showPicker, setShowPicker] = useState(false);
 
   const geo = useGeofence(company);
+  const prevInRange = React.useRef<boolean | null>(null);
+
+  // Local notification helper (uses SW if available for reliability)
+  const notifyLocal = async (title: string, body: string, tag: string) => {
+    try {
+      if (typeof window === 'undefined' || !('Notification' in window)) return;
+      if (Notification.permission !== 'granted') return;
+      const opts: NotificationOptions = {
+        body,
+        tag,
+        icon: '/pwa-192x192.png',
+        badge: '/pwa-192x192.png',
+        renotify: true,
+        requireInteraction: false,
+      };
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        await reg.showNotification(title, opts);
+      } else {
+        new Notification(title, opts);
+      }
+    } catch (e) {
+      console.warn('notifyLocal failed', e);
+    }
+  };
+
+  // Geofence transition -> prompt check-in / check-out
+  useEffect(() => {
+    if (!company || geo.requesting || geo.distance === null) return;
+    const now = geo.inRange;
+    const prev = prevInRange.current;
+    if (prev === null) {
+      prevInRange.current = now;
+      return;
+    }
+    if (prev !== now) {
+      // Entered range
+      if (now && !today?.check_in_at) {
+        notifyLocal(
+          '📍 You arrived at the office',
+          'Tap here or open the app to check in for today.',
+          'attendance-checkin',
+        );
+      }
+      // Left range
+      if (!now && today?.check_in_at && !today?.check_out_at) {
+        notifyLocal(
+          '👋 You left the office',
+          "Don't forget to check out for today.",
+          'attendance-checkout',
+        );
+      }
+      prevInRange.current = now;
+    }
+  }, [geo.inRange, geo.requesting, geo.distance, company, today?.check_in_at, today?.check_out_at]);
 
   // clock tick
   useEffect(() => {
