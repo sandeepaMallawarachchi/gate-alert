@@ -42,31 +42,18 @@ const Attendance: React.FC = () => {
   const geo = useGeofence(company);
   const prevInRange = React.useRef<boolean | null>(null);
 
-  // Local notification helper (uses SW if available for reliability)
-  const notifyLocal = async (title: string, body: string, tag: string) => {
+  // Fire a real FCM push to self (works when app is closed/backgrounded)
+  const notifySelf = async (title: string, body: string, tag: string) => {
     try {
-      if (typeof window === 'undefined' || !('Notification' in window)) return;
-      if (Notification.permission !== 'granted') return;
-      const opts: NotificationOptions & { renotify?: boolean } = {
-        body,
-        tag,
-        icon: '/pwa-192x192.png',
-        badge: '/pwa-192x192.png',
-        renotify: true,
-        requireInteraction: false,
-      };
-      if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.ready;
-        await reg.showNotification(title, opts);
-      } else {
-        new Notification(title, opts);
-      }
+      await supabase.functions.invoke('send-push-notification', {
+        body: { target: 'self', type: 'attendance', title, body, tag, url: '/attendance' },
+      });
     } catch (e) {
-      console.warn('notifyLocal failed', e);
+      console.warn('notifySelf failed', e);
     }
   };
 
-  // Geofence transition -> prompt check-in / check-out
+  // Geofence transition -> push check-in / check-out reminder
   useEffect(() => {
     if (!company || geo.requesting || geo.distance === null) return;
     const now = geo.inRange;
@@ -76,17 +63,15 @@ const Attendance: React.FC = () => {
       return;
     }
     if (prev !== now) {
-      // Entered range
       if (now && !today?.check_in_at) {
-        notifyLocal(
+        notifySelf(
           '📍 You arrived at the office',
-          'Tap here or open the app to check in for today.',
+          'Tap to check in for today.',
           'attendance-checkin',
         );
       }
-      // Left range
       if (!now && today?.check_in_at && !today?.check_out_at) {
-        notifyLocal(
+        notifySelf(
           '👋 You left the office',
           "Don't forget to check out for today.",
           'attendance-checkout',

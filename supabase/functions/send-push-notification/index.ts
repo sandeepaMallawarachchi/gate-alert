@@ -164,11 +164,15 @@ Deno.serve(async (req) => {
     const serviceAccount: ServiceAccount = JSON.parse(serviceAccountJson);
     const accessToken = await getAccessToken(serviceAccount);
 
-    // Get all FCM tokens except sender's
-    const { data: tokens, error } = await supabase
-      .from('fcm_tokens')
-      .select('token')
-      .neq('user_id', userId);
+    const target = (bodyJson?.target as string) || 'others'; // 'self' | 'others'
+
+    // Get FCM tokens: to self, or to everyone except sender
+    const tokensQuery = supabase.from('fcm_tokens').select('token');
+    const { data: tokens, error } = await (
+      target === 'self'
+        ? tokensQuery.eq('user_id', userId)
+        : tokensQuery.neq('user_id', userId)
+    );
 
     if (error) {
       throw error;
