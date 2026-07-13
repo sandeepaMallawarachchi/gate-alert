@@ -152,6 +152,27 @@ export type Database = {
         }
         Relationships: []
       }
+      push_dedupe: {
+        Row: {
+          created_at: string
+          date: string
+          tag: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          tag: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          tag?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       shared_locations: {
         Row: {
           accuracy: number | null

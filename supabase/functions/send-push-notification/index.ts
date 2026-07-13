@@ -165,6 +165,26 @@ Deno.serve(async (req) => {
     const accessToken = await getAccessToken(serviceAccount);
 
     const target = (bodyJson?.target as string) || 'others'; // 'self' | 'others'
+    const dedupePerDay = Boolean(bodyJson?.dedupe_per_day);
+
+    // Once-per-day dedupe (used for arrival/departure reminders)
+    if (dedupePerDay && target === 'self') {
+      const today = new Date().toISOString().slice(0, 10);
+      const { error: dedupeErr } = await supabase
+        .from('push_dedupe')
+        .insert({ user_id: userId, date: today, tag });
+      if (dedupeErr) {
+        // Unique-violation => already sent today; short-circuit success
+        if ((dedupeErr as any).code === '23505') {
+          return new Response(
+            JSON.stringify({ success: true, skipped: true, reason: 'already_sent_today', tag }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        throw dedupeErr;
+      }
+    }
+
 
     // Get FCM tokens: to self, or to everyone except sender
     const tokensQuery = supabase.from('fcm_tokens').select('token');
