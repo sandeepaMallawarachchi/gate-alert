@@ -3,12 +3,16 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, LogIn, LogOut, MapPin, Loader2, ShieldAlert, Users, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useGeofence, CompanyLocation } from '@/hooks/useGeofence';
 import { toast } from 'sonner';
 import CompanyLocationPicker from '@/components/CompanyLocationPicker';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import * as XLSX from 'xlsx';
 
 interface AttendanceRow {
@@ -38,6 +42,11 @@ const Attendance: React.FC = () => {
   const [now, setNow] = useState(new Date());
   const [viewAll, setViewAll] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportScope, setExportScope] = useState<'mine' | 'all' | 'selected'>('mine');
+  const [employees, setEmployees] = useState<Array<{ user_id: string; full_name: string; email?: string | null }>>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [exporting, setExporting] = useState(false);
 
   const geo = useGeofence(company);
   const prevInRange = React.useRef<boolean | null>(null);
@@ -140,32 +149,54 @@ const Attendance: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, viewAll, isAdmin]);
 
-  const exportXlsx = async (scope: 'mine' | 'all') => {
+  const loadEmployees = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('user_id, full_name, email')
+      .order('full_name', { ascending: true });
+    setEmployees((data as any) ?? []);
+  };
+
+  const openExportDialog = async () => {
+    if (!isAdmin) {
+      // non-admin: export mine only, no dialog
+      await runExport('mine', null);
+      return;
+    }
+    if (employees.length === 0) await loadEmployees();
+    setExportScope('mine');
+    setSelectedIds(new Set());
+    setExportOpen(true);
+  };
+
+  const runExport = async (scope: 'mine' | 'all' | 'selected', ids: string[] | null) => {
     if (!user) return;
+    setExporting(true);
     try {
       let query = supabase
         .from('attendance')
         .select('user_id, date, check_in_at, check_out_at')
         .order('date', { ascending: false });
       if (scope === 'mine') query = query.eq('user_id', user.id);
+      else if (scope === 'selected' && ids && ids.length) query = query.in('user_id', ids);
       const { data, error } = await query;
       if (error) throw error;
       const rows = data ?? [];
 
       let nameMap: Record<string, string> = {};
-      if (scope === 'all' && rows.length) {
-        const ids = Array.from(new Set(rows.map((r: any) => r.user_id)));
+      if (scope !== 'mine' && rows.length) {
+        const uids = Array.from(new Set(rows.map((r: any) => r.user_id)));
         const { data: profs } = await supabase
           .from('profiles')
           .select('user_id, full_name, email')
-          .in('user_id', ids);
+          .in('user_id', uids);
         (profs ?? []).forEach((p: any) => {
           nameMap[p.user_id] = p.full_name || p.email || p.user_id;
         });
       }
 
       const sheetRows = rows.map((r: any) => ({
-        Member: scope === 'all' ? (nameMap[r.user_id] || r.user_id) : 'Me',
+        Member: scope === 'mine' ? 'Me' : (nameMap[r.user_id] || r.user_id),
         Date: r.date,
         'Check In': r.check_in_at ? new Date(r.check_in_at).toLocaleString() : '',
         'Check Out': r.check_out_at ? new Date(r.check_out_at).toLocaleString() : '',
@@ -177,9 +208,29 @@ const Attendance: React.FC = () => {
       const stamp = new Date().toISOString().slice(0, 10);
       XLSX.writeFile(wb, `attendance-${scope}-${stamp}.xlsx`);
       toast.success('Exported');
+      setExportOpen(false);
     } catch (e: any) {
       toast.error(e.message || 'Export failed');
+    } finally {
+      setExporting(false);
     }
+  };
+
+  const handleExportConfirm = () => {
+    if (exportScope === 'selected' && selectedIds.size === 0) {
+      toast.error('Select at least one employee');
+      return;
+    }
+    runExport(exportScope, exportScope === 'selected' ? Array.from(selectedIds) : null);
+  };
+
+  const toggleEmployee = (id: string) => {
+    setSelectedIds((prev) => {
+      const s = new Set(prev);
+      if (s.has(id)) s.delete(id);
+      else s.add(id);
+      return s;
+    });
   };
 
 
@@ -338,20 +389,14 @@ const Attendance: React.FC = () => {
             {viewAll && isAdmin ? 'All members' : 'Your history'}
           </h2>
           <div className="flex items-center gap-1">
-            {isAdmin && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Download className="w-4 h-4 mr-2" />
-                    Export
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => exportXlsx('mine')}>Download mine</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => exportXlsx('all')}>Download all</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            <Button
+              size="sm"
+              onClick={openExportDialog}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
             {isAdmin && (
               <Button
                 size="sm"
@@ -390,6 +435,55 @@ const Attendance: React.FC = () => {
       </main>
 
       <CompanyLocationPicker open={showPicker} onOpenChange={(v) => { setShowPicker(v); if (!v) loadCompany(); }} />
+
+      <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Export attendance</DialogTitle>
+          </DialogHeader>
+          <RadioGroup value={exportScope} onValueChange={(v) => setExportScope(v as any)} className="space-y-2">
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="mine" id="scope-mine" />
+              <Label htmlFor="scope-mine" className="cursor-pointer">My attendance only</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="all" id="scope-all" />
+              <Label htmlFor="scope-all" className="cursor-pointer">All employees</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="selected" id="scope-selected" />
+              <Label htmlFor="scope-selected" className="cursor-pointer">Selected employees</Label>
+            </div>
+          </RadioGroup>
+
+          {exportScope === 'selected' && (
+            <ScrollArea className="h-56 rounded-md border border-border p-2">
+              <div className="space-y-2">
+                {employees.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">No employees</p>
+                )}
+                {employees.map((e) => (
+                  <label key={e.user_id} className="flex items-center gap-2 cursor-pointer text-sm py-1">
+                    <Checkbox
+                      checked={selectedIds.has(e.user_id)}
+                      onCheckedChange={() => toggleEmployee(e.user_id)}
+                    />
+                    <span className="text-foreground">{e.full_name || e.email || e.user_id.slice(0, 8)}</span>
+                  </label>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setExportOpen(false)}>Cancel</Button>
+            <Button onClick={handleExportConfirm} disabled={exporting}>
+              {exporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+              Export
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
