@@ -149,32 +149,54 @@ const Attendance: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, viewAll, isAdmin]);
 
-  const exportXlsx = async (scope: 'mine' | 'all') => {
+  const loadEmployees = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('user_id, full_name, email')
+      .order('full_name', { ascending: true });
+    setEmployees((data as any) ?? []);
+  };
+
+  const openExportDialog = async () => {
+    if (!isAdmin) {
+      // non-admin: export mine only, no dialog
+      await runExport('mine', null);
+      return;
+    }
+    if (employees.length === 0) await loadEmployees();
+    setExportScope('mine');
+    setSelectedIds(new Set());
+    setExportOpen(true);
+  };
+
+  const runExport = async (scope: 'mine' | 'all' | 'selected', ids: string[] | null) => {
     if (!user) return;
+    setExporting(true);
     try {
       let query = supabase
         .from('attendance')
         .select('user_id, date, check_in_at, check_out_at')
         .order('date', { ascending: false });
       if (scope === 'mine') query = query.eq('user_id', user.id);
+      else if (scope === 'selected' && ids && ids.length) query = query.in('user_id', ids);
       const { data, error } = await query;
       if (error) throw error;
       const rows = data ?? [];
 
       let nameMap: Record<string, string> = {};
-      if (scope === 'all' && rows.length) {
-        const ids = Array.from(new Set(rows.map((r: any) => r.user_id)));
+      if (scope !== 'mine' && rows.length) {
+        const uids = Array.from(new Set(rows.map((r: any) => r.user_id)));
         const { data: profs } = await supabase
           .from('profiles')
           .select('user_id, full_name, email')
-          .in('user_id', ids);
+          .in('user_id', uids);
         (profs ?? []).forEach((p: any) => {
           nameMap[p.user_id] = p.full_name || p.email || p.user_id;
         });
       }
 
       const sheetRows = rows.map((r: any) => ({
-        Member: scope === 'all' ? (nameMap[r.user_id] || r.user_id) : 'Me',
+        Member: scope === 'mine' ? 'Me' : (nameMap[r.user_id] || r.user_id),
         Date: r.date,
         'Check In': r.check_in_at ? new Date(r.check_in_at).toLocaleString() : '',
         'Check Out': r.check_out_at ? new Date(r.check_out_at).toLocaleString() : '',
@@ -186,9 +208,29 @@ const Attendance: React.FC = () => {
       const stamp = new Date().toISOString().slice(0, 10);
       XLSX.writeFile(wb, `attendance-${scope}-${stamp}.xlsx`);
       toast.success('Exported');
+      setExportOpen(false);
     } catch (e: any) {
       toast.error(e.message || 'Export failed');
+    } finally {
+      setExporting(false);
     }
+  };
+
+  const handleExportConfirm = () => {
+    if (exportScope === 'selected' && selectedIds.size === 0) {
+      toast.error('Select at least one employee');
+      return;
+    }
+    runExport(exportScope, exportScope === 'selected' ? Array.from(selectedIds) : null);
+  };
+
+  const toggleEmployee = (id: string) => {
+    setSelectedIds((prev) => {
+      const s = new Set(prev);
+      if (s.has(id)) s.delete(id);
+      else s.add(id);
+      return s;
+    });
   };
 
 
