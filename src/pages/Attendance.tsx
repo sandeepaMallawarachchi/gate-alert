@@ -389,20 +389,14 @@ const Attendance: React.FC = () => {
             {viewAll && isAdmin ? 'All members' : 'Your history'}
           </h2>
           <div className="flex items-center gap-1">
-            {isAdmin && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Download className="w-4 h-4 mr-2" />
-                    Export
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => exportXlsx('mine')}>Download mine</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => exportXlsx('all')}>Download all</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            <Button
+              size="sm"
+              onClick={openExportDialog}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
             {isAdmin && (
               <Button
                 size="sm"
