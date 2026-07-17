@@ -435,6 +435,55 @@ const Attendance: React.FC = () => {
       </main>
 
       <CompanyLocationPicker open={showPicker} onOpenChange={(v) => { setShowPicker(v); if (!v) loadCompany(); }} />
+
+      <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Export attendance</DialogTitle>
+          </DialogHeader>
+          <RadioGroup value={exportScope} onValueChange={(v) => setExportScope(v as any)} className="space-y-2">
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="mine" id="scope-mine" />
+              <Label htmlFor="scope-mine" className="cursor-pointer">My attendance only</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="all" id="scope-all" />
+              <Label htmlFor="scope-all" className="cursor-pointer">All employees</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="selected" id="scope-selected" />
+              <Label htmlFor="scope-selected" className="cursor-pointer">Selected employees</Label>
+            </div>
+          </RadioGroup>
+
+          {exportScope === 'selected' && (
+            <ScrollArea className="h-56 rounded-md border border-border p-2">
+              <div className="space-y-2">
+                {employees.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">No employees</p>
+                )}
+                {employees.map((e) => (
+                  <label key={e.user_id} className="flex items-center gap-2 cursor-pointer text-sm py-1">
+                    <Checkbox
+                      checked={selectedIds.has(e.user_id)}
+                      onCheckedChange={() => toggleEmployee(e.user_id)}
+                    />
+                    <span className="text-foreground">{e.full_name || e.email || e.user_id.slice(0, 8)}</span>
+                  </label>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setExportOpen(false)}>Cancel</Button>
+            <Button onClick={handleExportConfirm} disabled={exporting}>
+              {exporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+              Export
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
