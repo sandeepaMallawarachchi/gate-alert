@@ -3,12 +3,16 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, LogIn, LogOut, MapPin, Loader2, ShieldAlert, Users, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useGeofence, CompanyLocation } from '@/hooks/useGeofence';
 import { toast } from 'sonner';
 import CompanyLocationPicker from '@/components/CompanyLocationPicker';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import * as XLSX from 'xlsx';
 
 interface AttendanceRow {
