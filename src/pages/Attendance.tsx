@@ -42,9 +42,11 @@ const Attendance: React.FC = () => {
   const [now, setNow] = useState(new Date());
   const [viewAll, setViewAll] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
-
-  const geo = useGeofence(company);
-  const prevInRange = React.useRef<boolean | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportScope, setExportScope] = useState<'mine' | 'all' | 'selected'>('mine');
+  const [employees, setEmployees] = useState<Array<{ user_id: string; full_name: string; email?: string | null }>>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [exporting, setExporting] = useState(false);
 
   // Fire a real FCM push to self (works when app is closed/backgrounded)
   // Deduped server-side to one push per (user, day, tag).
