@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import LocationsMap from "./pages/LocationsMap";
 import Attendance from "./pages/Attendance";
+import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 import BottomNav from "./components/BottomNav";
 
