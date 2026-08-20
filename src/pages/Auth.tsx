@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +12,11 @@ import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 
 const Auth: React.FC = () => {
   const { user, loading: authLoading, signIn, signUp } = useAuth();
-  
+  const [searchParams] = useSearchParams();
+  const rawNext = searchParams.get('next');
+  // Only allow same-origin relative paths.
+  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/';
+
   const [forgotOpen, setForgotOpen] = useState(false);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [registerData, setRegisterData] = useState({ 
@@ -33,7 +37,7 @@ const Auth: React.FC = () => {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={next} replace />;
   }
 
   const handleLogin = async (e: React.FormEvent) => {

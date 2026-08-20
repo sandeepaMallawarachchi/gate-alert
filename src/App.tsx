@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import LocationsMap from "./pages/LocationsMap";
 import Attendance from "./pages/Attendance";
+import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 import BottomNav from "./components/BottomNav";
 
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/locations" element={<LocationsMap />} />
             <Route path="/attendance" element={<Attendance />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
