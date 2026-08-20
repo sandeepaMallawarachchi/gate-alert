@@ -37,7 +37,7 @@ const Auth: React.FC = () => {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={next} replace />;
   }
 
   const handleLogin = async (e: React.FormEvent) => {
