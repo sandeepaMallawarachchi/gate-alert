@@ -10,11 +10,13 @@ import InstallInstructionsModal from '@/components/InstallInstructionsModal';
 import NotificationPermission from '@/components/NotificationPermission';
 import AdminUsersModal from '@/components/AdminUsersModal';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Index: React.FC = () => {
   const { user, profile, isAdmin, loading, signOut } = useAuth();
+  const { settings } = useAppSettings();
   const navigate = useNavigate();
   const [showAlert, setShowAlert] = useState(false);
   const [alertSenderName, setAlertSenderName] = useState<string>('');
@@ -151,6 +153,7 @@ const Index: React.FC = () => {
         
         <div className="hidden lg:flex items-center gap-2">
           <NotificationPermission onNotificationReceived={handleNotificationReceived} />
+          {settings.attendance_enabled && (
           <Button
             variant="ghost"
             size="icon"
@@ -160,6 +163,8 @@ const Index: React.FC = () => {
           >
             <Clock className="w-5 h-5" />
           </Button>
+          )}
+          {settings.locations_enabled && (
           <Button
             variant="ghost"
             size="icon"
@@ -172,6 +177,7 @@ const Index: React.FC = () => {
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
             )}
           </Button>
+          )}
           {isAdmin && (
             <Button
               variant="ghost"
@@ -256,8 +262,9 @@ const Index: React.FC = () => {
           </Card>
 
           {/* Mark Attendance */}
+          {settings.attendance_enabled && (
           <Card
-            className="p-5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-secondary/50 transition-colors"
+            className={`${settings.locations_enabled ? '' : 'col-span-2'} p-5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-secondary/50 transition-colors`}
             onClick={() => navigate('/attendance')}
           >
             <div className="relative w-16 h-16 rounded-full bg-secondary border-2 border-primary/30 flex items-center justify-center">
@@ -268,10 +275,12 @@ const Index: React.FC = () => {
               <p className="text-xs text-muted-foreground">Check in / out</p>
             </div>
           </Card>
+          )}
 
           {/* Live Locations */}
+          {settings.locations_enabled && (
           <Card
-            className="p-5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-secondary/50 transition-colors"
+            className={`${settings.attendance_enabled ? '' : 'col-span-2'} p-5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-secondary/50 transition-colors`}
             onClick={() => navigate('/locations')}
           >
             <div className="relative w-16 h-16 rounded-full bg-secondary border-2 border-primary/30 flex items-center justify-center">
@@ -287,6 +296,7 @@ const Index: React.FC = () => {
               </p>
             </div>
           </Card>
+          )}
 
           {/* Admin Users */}
           {isAdmin && (

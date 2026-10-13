@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import SettingsModal from '@/components/SettingsModal';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import AdminUsersModal from '@/components/AdminUsersModal';
 
 const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdmin } = useAuth();
+  const { settings } = useAppSettings();
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [sharingCount, setSharingCount] = useState(0);
@@ -46,6 +48,7 @@ const BottomNav: React.FC = () => {
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex items-center justify-around h-16 px-4">
+          {settings.attendance_enabled && (
           <Button
             variant="ghost"
             size="icon"
@@ -55,6 +58,8 @@ const BottomNav: React.FC = () => {
           >
             <Clock className="w-6 h-6" />
           </Button>
+          )}
+          {settings.locations_enabled && (
           <Button
             variant="ghost"
             size="icon"
@@ -67,6 +72,7 @@ const BottomNav: React.FC = () => {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-background animate-ping" />
             )}
           </Button>
+          )}
           {isAdmin && (
             <Button
               variant="ghost"

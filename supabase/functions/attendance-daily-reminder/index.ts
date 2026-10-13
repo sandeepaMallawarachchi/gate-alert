@@ -97,6 +97,14 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // Feature flag: skip when attendance is disabled by admin
+    const { data: flags } = await supabase.from('app_settings').select('attendance_enabled').eq('id', 1).maybeSingle();
+    if (!flags?.attendance_enabled) {
+      return new Response(JSON.stringify({ skipped: 'attendance disabled' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Load users with active profiles
     const { data: profiles, error: profErr } = await supabase
       .from('profiles')
