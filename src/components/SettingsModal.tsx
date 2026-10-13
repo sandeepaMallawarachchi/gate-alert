@@ -8,6 +8,8 @@ import { Camera, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -15,7 +17,8 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { profile, user, updateProfile, refreshProfile } = useAuth();
+  const { profile, user, isAdmin, updateProfile, refreshProfile } = useAuth();
+  const { settings, update: updateSettings } = useAppSettings();
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -131,6 +134,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               className="bg-input border-border text-foreground"
             />
           </div>
+
+          {isAdmin && (
+            <div className="space-y-3 rounded-lg border border-border p-4">
+              <p className="text-sm font-semibold text-foreground">Features (admin)</p>
+              {([
+                ['attendance_enabled', 'Attendance', 'Check in/out and attendance reminders'],
+                ['locations_enabled', 'Locations', 'Live location sharing map'],
+              ] as const).map(([key, label, desc]) => (
+                <div key={key} className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-foreground">{label}</p>
+                    <p className="text-xs text-muted-foreground">{desc}</p>
+                  </div>
+                  <Switch
+                    checked={settings[key]}
+                    onCheckedChange={async (v) => {
+                      const { error } = await updateSettings({ [key]: v });
+                      if (error) toast.error('Failed to update');
+                      else toast.success(`${label} ${v ? 'enabled' : 'disabled'}`);
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Save Button */}
           <Button 
