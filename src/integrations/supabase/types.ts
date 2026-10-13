@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          attendance_enabled: boolean
+          id: number
+          locations_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          attendance_enabled?: boolean
+          id?: number
+          locations_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          attendance_enabled?: boolean
+          id?: number
+          locations_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           check_in_at: string | null
