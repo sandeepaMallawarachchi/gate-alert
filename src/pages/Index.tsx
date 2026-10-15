@@ -172,9 +172,9 @@ const Index: React.FC = () => {
             className="relative text-muted-foreground hover:text-foreground hover:bg-secondary"
             title="Live locations"
           >
-            <MapPin className={`w-5 h-5 ${sharingCount > 0 ? 'text-yellow-400 animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]' : ''}`} />
+            <MapPin className={`w-5 h-5 ${sharingCount > 0 ? 'text-success animate-pulse drop-shadow-[0_0_6px_rgba(52,199,89,0.7)]' : ''}`} />
             {sharingCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-success animate-ping" />
             )}
           </Button>
           )}
@@ -284,9 +284,9 @@ const Index: React.FC = () => {
             onClick={() => navigate('/locations')}
           >
             <div className="relative w-16 h-16 rounded-full bg-secondary border-2 border-primary/30 flex items-center justify-center">
-              <MapPin className={`w-8 h-8 ${sharingCount > 0 ? 'text-yellow-400 animate-pulse drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]' : 'text-primary'}`} />
+              <MapPin className={`w-8 h-8 ${sharingCount > 0 ? 'text-success animate-pulse drop-shadow-[0_0_6px_rgba(52,199,89,0.7)]' : 'text-primary'}`} />
               {sharingCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-400 animate-ping" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-success animate-ping" />
               )}
             </div>
             <div className="text-center">
