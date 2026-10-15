@@ -321,15 +321,15 @@ const Attendance: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="flex items-center justify-between p-4 border-b border-border">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/')} title="Back">
+      <header className="sticky top-3 z-30 mx-3 mt-3 flex items-center justify-between px-3 py-2 glass rounded-full">
+        <Button variant="ghost" size="icon" className="apple-icon-button" onClick={() => navigate('/')} title="Back">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Clock className="w-5 h-5 text-primary" /> Attendance
         </h1>
         {isAdmin ? (
-          <Button variant="ghost" size="icon" onClick={() => setShowPicker(true)} title="Set company location">
+          <Button variant="ghost" size="icon" className="apple-icon-button" onClick={() => setShowPicker(true)} title="Set company location">
             <MapPin className="w-5 h-5" />
           </Button>
         ) : (

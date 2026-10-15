@@ -18,7 +18,7 @@ const iconSizes = { sm: 'w-4 h-4', md: 'w-6 h-6', lg: 'w-8 h-8' };
 
 const IconTile: React.FC<Props> = ({ icon: Icon, color = 'blue', size = 'md', className, iconClassName, children }) => (
   <div
-    className={cn('icon-tile relative rounded-full flex items-center justify-center text-primary-foreground shrink-0', sizes[size], className)}
+    className={cn('icon-tile relative rounded-full flex items-center justify-center text-primary-foreground shrink-0 transition-transform duration-200 hover:-translate-y-0.5', sizes[size], className)}
     style={{ ['--tile' as any]: `var(--tile-${color})` }}
   >
     <Icon className={cn(iconSizes[size], iconClassName)} strokeWidth={2.25} />

@@ -9,6 +9,7 @@ import { Bell, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
+import PasswordInput from '@/components/PasswordInput';
 
 const Auth: React.FC = () => {
   const { user, loading: authLoading, signIn, signUp } = useAuth();
@@ -156,9 +157,8 @@ const Auth: React.FC = () => {
                       Forgot password?
                     </button>
                   </div>
-                  <Input
+                  <PasswordInput
                     id="login-password"
-                    type="password"
                     placeholder="Enter password"
                     value={loginData.password}
                     onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
@@ -224,9 +224,8 @@ const Auth: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-password" className="text-foreground">Password</Label>
-                  <Input
+                  <PasswordInput
                     id="register-password"
-                    type="password"
                     placeholder="Create a password"
                     value={registerData.password}
                     onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
@@ -235,9 +234,8 @@ const Auth: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-confirm" className="text-foreground">Confirm Password</Label>
-                  <Input
+                  <PasswordInput
                     id="register-confirm"
-                    type="password"
                     placeholder="Confirm your password"
                     value={registerData.confirmPassword}
                     onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}

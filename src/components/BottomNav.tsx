@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Clock, MapPin, Users, Settings } from 'lucide-react';
+import { Clock, Home, MapPin, Users, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,9 +31,8 @@ const BottomNav: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const iconBtn =
-    'h-12 w-12 rounded-full text-foreground hover:bg-secondary hover:text-foreground';
-  const activeRing = 'bg-primary/15 text-primary ring-1 ring-primary/40';
+  const iconBtn = 'h-12 w-12 rounded-full apple-icon-button';
+  const activeRing = 'apple-icon-button-active';
 
   if (!user) return null;
 
@@ -44,6 +43,16 @@ const BottomNav: React.FC = () => {
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex items-center justify-around h-16 px-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/')}
+            className={`${iconBtn} ${isActive('/') ? activeRing : ''}`}
+            title="Home"
+            aria-label="Home"
+          >
+            <Home className="w-6 h-6" />
+          </Button>
           {settings.attendance_enabled && (
           <Button
             variant="ghost"

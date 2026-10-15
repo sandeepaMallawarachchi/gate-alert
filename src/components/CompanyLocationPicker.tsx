@@ -95,9 +95,9 @@ const CompanyLocationPicker: React.FC<Props> = ({ open, onOpenChange }) => {
           map: mapRef.current,
           center,
           radius: loc.radius_meters,
-          fillColor: '#f59e0b',
+          fillColor: '#1976e8',
           fillOpacity: 0.15,
-          strokeColor: '#f59e0b',
+          strokeColor: '#1976e8',
           strokeOpacity: 0.9,
           strokeWeight: 2,
         });

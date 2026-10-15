@@ -154,7 +154,7 @@ const Index: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={() => navigate('/attendance')}
-            className="text-muted-foreground hover:text-foreground hover:bg-secondary"
+            className="apple-icon-button"
             title="Attendance"
           >
             <Clock className="w-5 h-5" />
@@ -165,7 +165,7 @@ const Index: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={() => navigate('/locations')}
-            className="relative text-muted-foreground hover:text-foreground hover:bg-secondary"
+            className="relative apple-icon-button"
             title="Live locations"
           >
             <MapPin className={`w-5 h-5 ${sharingCount > 0 ? 'text-success animate-pulse drop-shadow-[0_0_6px_rgba(52,199,89,0.7)]' : ''}`} />
@@ -179,7 +179,7 @@ const Index: React.FC = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate('/users')}
-              className="text-muted-foreground hover:text-foreground hover:bg-secondary"
+              className="apple-icon-button"
               title="Manage users"
             >
               <Users className="w-5 h-5" />
@@ -189,7 +189,7 @@ const Index: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={handleLogout}
-            className="text-muted-foreground hover:text-destructive hover:bg-secondary"
+            className="apple-icon-button hover:!text-destructive"
           >
             <LogOut className="w-5 h-5" />
           </Button>
@@ -202,7 +202,7 @@ const Index: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={handleLogout}
-            className="text-muted-foreground hover:text-destructive hover:bg-secondary"
+            className="apple-icon-button hover:!text-destructive"
             title="Log out"
           >
             <LogOut className="w-5 h-5" />
@@ -216,13 +216,12 @@ const Index: React.FC = () => {
           <h1 className="text-2xl font-bold text-foreground mb-1">
             {profile?.full_name ? `Hello, ${profile.full_name.split(' ')[0]}` : 'Dashboard'}
           </h1>
-          <p className="text-muted-foreground">Quick actions for your team</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm px-1">
           {/* Send Alert */}
           <Card
-            className="col-span-2 p-5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-secondary/50 transition-colors border-primary/30 overflow-hidden"
+            className="col-span-2 liquid-card p-5 flex flex-col items-center justify-center gap-3 cursor-pointer border-primary/30 overflow-hidden transition-transform hover:-translate-y-0.5"
             onClick={handleBuzzerClick}
           >
             <div className="relative flex items-center justify-center">
@@ -252,7 +251,6 @@ const Index: React.FC = () => {
               </button>
             </div>
             <div className="text-center">
-              <p className="text-lg font-semibold text-foreground">Send Alert</p>
               <p className="text-sm text-muted-foreground">Notify all members instantly</p>
             </div>
           </Card>
@@ -260,11 +258,11 @@ const Index: React.FC = () => {
           {/* Mark Attendance */}
           {settings.attendance_enabled && (
           <Card
-            className={`${settings.locations_enabled ? '' : 'col-span-2'} p-5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-secondary/50 transition-colors`}
+            className={`${settings.locations_enabled ? '' : 'col-span-2'} liquid-card p-5 flex flex-col items-center justify-center gap-3 cursor-pointer transition-transform hover:-translate-y-0.5`}
             onClick={() => navigate('/attendance')}
           >
-            <div className="relative w-16 h-16 rounded-full bg-secondary border-2 border-primary/30 flex items-center justify-center">
-              <Clock className="w-8 h-8 text-primary" />
+            <div className="relative w-16 h-16 flex items-center justify-center">
+              <Clock className="w-9 h-9 text-primary" strokeWidth={1.8} />
             </div>
             <div className="text-center">
               <p className="text-base font-semibold text-foreground">Attendance</p>
@@ -276,11 +274,11 @@ const Index: React.FC = () => {
           {/* Live Locations */}
           {settings.locations_enabled && (
           <Card
-            className={`${settings.attendance_enabled ? '' : 'col-span-2'} p-5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-secondary/50 transition-colors`}
+            className={`${settings.attendance_enabled ? '' : 'col-span-2'} liquid-card p-5 flex flex-col items-center justify-center gap-3 cursor-pointer transition-transform hover:-translate-y-0.5`}
             onClick={() => navigate('/locations')}
           >
-            <div className="relative w-16 h-16 rounded-full bg-secondary border-2 border-primary/30 flex items-center justify-center">
-              <MapPin className={`w-8 h-8 ${sharingCount > 0 ? 'text-success animate-pulse drop-shadow-[0_0_6px_rgba(52,199,89,0.7)]' : 'text-primary'}`} />
+            <div className="relative w-16 h-16 flex items-center justify-center">
+              <MapPin className={`w-9 h-9 ${sharingCount > 0 ? 'text-success animate-pulse drop-shadow-[0_0_6px_rgba(52,199,89,0.7)]' : 'text-primary'}`} strokeWidth={1.8} />
               {sharingCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-success animate-ping" />
               )}
@@ -297,11 +295,11 @@ const Index: React.FC = () => {
           {/* Admin Users */}
           {isAdmin && (
             <Card
-              className="col-span-2 p-5 flex flex-row items-center gap-4 cursor-pointer hover:bg-secondary/50 transition-colors"
+              className="col-span-2 liquid-card p-5 flex flex-row items-center gap-4 cursor-pointer transition-transform hover:-translate-y-0.5"
               onClick={() => navigate('/users')}
             >
-              <div className="relative w-14 h-14 rounded-full bg-secondary border-2 border-primary/30 flex items-center justify-center shrink-0">
-                <Users className="w-7 h-7 text-primary" />
+              <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
+                <Users className="w-8 h-8 text-primary" strokeWidth={1.8} />
               </div>
               <div>
                 <p className="text-base font-semibold text-foreground">Manage Team</p>
@@ -310,10 +308,6 @@ const Index: React.FC = () => {
             </Card>
           )}
         </div>
-
-        <p className="mt-10 text-sm text-muted-foreground text-center max-w-xs">
-          Tap any action to get started
-        </p>
       </main>
 
 

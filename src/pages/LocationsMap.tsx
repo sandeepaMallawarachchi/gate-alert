@@ -380,9 +380,9 @@ const LocationsMap: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="flex items-center justify-between p-4 border-b border-border">
+      <header className="sticky top-3 z-30 mx-3 mt-3 flex items-center justify-between px-3 py-2 glass rounded-full">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+          <Button variant="ghost" size="icon" className="apple-icon-button" onClick={() => navigate('/')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-lg font-semibold">Live Locations</h1>

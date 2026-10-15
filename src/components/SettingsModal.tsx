@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Loader2 } from 'lucide-react';
+import { Camera, KeyRound, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import PasswordInput from '@/components/PasswordInput';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -23,6 +24,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, asPage }
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync fullName with profile when modal opens or profile changes
@@ -74,6 +79,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, asPage }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePasswordChange = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setChangingPassword(false);
+    if (error) {
+      toast.error(error.message || 'Failed to update password');
+      return;
+    }
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordOpen(false);
+    toast.success('Password updated');
   };
 
   const getInitials = (name: string) => {
@@ -131,6 +160,58 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, asPage }
               placeholder="Enter your full name"
               className="bg-input border-border text-foreground"
             />
+          </div>
+
+          <div className="rounded-2xl border border-border bg-secondary/20 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <KeyRound className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Password</p>
+                  <p className="text-xs text-muted-foreground">Keep your account secure</p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-primary hover:text-primary"
+                onClick={() => setPasswordOpen((open) => !open)}
+                aria-expanded={passwordOpen}
+              >
+                {passwordOpen ? 'Cancel' : 'Change'}
+              </Button>
+            </div>
+
+            {passwordOpen && (
+              <form onSubmit={handlePasswordChange} className="mt-4 space-y-3 border-t border-border pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="settings-new-password" className="text-foreground">New Password</Label>
+                  <PasswordInput
+                    id="settings-new-password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    placeholder="At least 6 characters"
+                    autoComplete="new-password"
+                    className="bg-input border-border text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="settings-confirm-password" className="text-foreground">Confirm New Password</Label>
+                  <PasswordInput
+                    id="settings-confirm-password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    placeholder="Repeat new password"
+                    autoComplete="new-password"
+                    className="bg-input border-border text-foreground"
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={changingPassword}>
+                  {changingPassword ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Updating...</> : 'Update Password'}
+                </Button>
+              </form>
+            )}
           </div>
 
           {isAdmin && (
