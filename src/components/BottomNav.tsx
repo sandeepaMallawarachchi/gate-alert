@@ -36,16 +36,16 @@ const BottomNav: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const iconBtn =
-    'h-12 w-12 rounded-xl text-foreground hover:bg-secondary hover:text-foreground';
-  const activeRing = 'ring-2 ring-primary/60 bg-secondary';
+    'h-12 w-12 rounded-full text-foreground hover:bg-secondary hover:text-foreground';
+  const activeRing = 'bg-primary/15 text-primary ring-1 ring-primary/40';
 
   if (!user) return null;
 
   return (
     <>
       <nav
-        className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        className="lg:hidden fixed bottom-3 inset-x-4 z-40 glass rounded-full"
+        style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex items-center justify-around h-16 px-4">
           {settings.attendance_enabled && (

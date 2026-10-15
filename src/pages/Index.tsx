@@ -133,7 +133,7 @@ const Index: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-border">
+      <header className="sticky top-3 z-30 mx-3 mt-3 flex items-center justify-between px-4 py-3 glass rounded-full">
         <button
           onClick={() => setShowSettings(true)}
           className="flex items-center gap-3 rounded-md p-1 -m-1 hover:bg-secondary transition-colors"
