@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
@@ -110,9 +110,11 @@ const Auth: React.FC = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Logo */}
       <div className="mb-8 flex flex-col items-center">
-        <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-4 buzzer-glow">
-          <Bell className="w-10 h-10 text-primary" />
-        </div>
+        <img
+          src="/icon.png"
+          alt="Gate Alert"
+          className="h-20 w-20 rounded-full object-cover shadow-[0_0_28px_hsl(var(--primary)/0.42)]"
+        />
         <h1 className="text-3xl font-bold text-foreground">Gate Alert</h1>
         <p className="text-muted-foreground mt-1">Employee Access System</p>
       </div>
