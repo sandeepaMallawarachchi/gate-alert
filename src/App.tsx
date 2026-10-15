@@ -10,6 +10,8 @@ import Auth from "./pages/Auth";
 import LocationsMap from "./pages/LocationsMap";
 import Attendance from "./pages/Attendance";
 import OAuthConsent from "./pages/OAuthConsent";
+import Settings from "./pages/Settings";
+import ManageUsers from "./pages/ManageUsers";
 import NotFound from "./pages/NotFound";
 import BottomNav from "./components/BottomNav";
 
@@ -28,6 +30,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/locations" element={<FeatureGate feature="locations_enabled"><LocationsMap /></FeatureGate>} />
             <Route path="/attendance" element={<FeatureGate feature="attendance_enabled"><Attendance /></FeatureGate>} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/users" element={<ManageUsers />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

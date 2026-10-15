@@ -18,11 +18,6 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, asPage }) => {
-  const Wrap = asPage
-    ? ({ children }: { children: React.ReactNode }) => <div className="glass rounded-[1.75rem] p-6">{children}</div>
-    : ({ children }: { children: React.ReactNode }) => (
-        <Dialog open={isOpen} onOpenChange={onClose}><DialogContent className="bg-card border-border">{children}</DialogContent></Dialog>
-      );
   const { profile, user, isAdmin, updateProfile, refreshProfile } = useAuth();
   const { settings, update: updateSettings } = useAppSettings();
   const [fullName, setFullName] = useState('');
@@ -90,8 +85,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, asPage }
       .slice(0, 2);
   };
 
-  return (
-    <Wrap>
+  const body = (
+    <>
         {!asPage && <DialogHeader><DialogTitle className="text-foreground text-xl">Settings</DialogTitle></DialogHeader>}
 
         <div className="space-y-6 py-4">
@@ -179,7 +174,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, asPage }
             )}
           </Button>
         </div>
-      </Wrap>
+      </>
+  );
+  return asPage ? <div className="glass rounded-[1.75rem] p-6">{body}</div> : (
+    <Dialog open={isOpen} onOpenChange={onClose}><DialogContent className="bg-card border-border">{body}</DialogContent></Dialog>
   );
 };
 

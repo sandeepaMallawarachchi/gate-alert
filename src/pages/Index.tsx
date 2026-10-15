@@ -5,10 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AlertOverlay from '@/components/AlertOverlay';
-import SettingsModal from '@/components/SettingsModal';
 import InstallInstructionsModal from '@/components/InstallInstructionsModal';
 import NotificationPermission from '@/components/NotificationPermission';
-import AdminUsersModal from '@/components/AdminUsersModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,8 +19,6 @@ const Index: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertSenderName, setAlertSenderName] = useState<string>('');
   const [alertSenderAvatar, setAlertSenderAvatar] = useState<string>('');
-  const [showSettings, setShowSettings] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
   const [sendingAlert, setSendingAlert] = useState(false);
   const [sharingCount, setSharingCount] = useState(0);
 
@@ -135,7 +131,7 @@ const Index: React.FC = () => {
       {/* Header */}
       <header className="sticky top-3 z-30 mx-3 mt-3 flex items-center justify-between px-4 py-3 glass rounded-full">
         <button
-          onClick={() => setShowSettings(true)}
+          onClick={() => navigate('/settings')}
           className="flex items-center gap-3 rounded-md p-1 -m-1 hover:bg-secondary transition-colors"
           title="Open settings"
         >
@@ -182,7 +178,7 @@ const Index: React.FC = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setShowAdmin(true)}
+              onClick={() => navigate('/users')}
               className="text-muted-foreground hover:text-foreground hover:bg-secondary"
               title="Manage users"
             >
@@ -302,7 +298,7 @@ const Index: React.FC = () => {
           {isAdmin && (
             <Card
               className="col-span-2 p-5 flex flex-row items-center gap-4 cursor-pointer hover:bg-secondary/50 transition-colors"
-              onClick={() => setShowAdmin(true)}
+              onClick={() => navigate('/users')}
             >
               <div className="relative w-14 h-14 rounded-full bg-secondary border-2 border-primary/30 flex items-center justify-center shrink-0">
                 <Users className="w-7 h-7 text-primary" />
@@ -330,11 +326,9 @@ const Index: React.FC = () => {
       />
 
       {/* Settings Modal */}
-      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
 
 
       {/* Admin Users Modal */}
-      <AdminUsersModal open={showAdmin} onOpenChange={setShowAdmin} />
 
       {/* Install Instructions Modal - only shows on first web visit */}
       <InstallInstructionsModal />

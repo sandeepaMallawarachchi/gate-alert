@@ -24,11 +24,6 @@ interface Props {
 }
 
 const AdminUsersModal: React.FC<Props> = ({ open, onOpenChange, asPage }) => {
-  const Wrap = asPage
-    ? ({ children }: { children: React.ReactNode }) => <div>{children}</div>
-    : ({ children }: { children: React.ReactNode }) => (
-        <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="bg-card border-border max-w-md max-h-[80vh] overflow-y-auto">{children}</DialogContent></Dialog>
-      );
   const { user } = useAuth();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -103,8 +98,8 @@ const AdminUsersModal: React.FC<Props> = ({ open, onOpenChange, asPage }) => {
 
   const initials = (n: string) => n.split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase();
 
-  return (
-    <Wrap>
+  const body = (
+    <>
         {!asPage && <DialogHeader><DialogTitle className="text-foreground text-xl">Manage Users</DialogTitle></DialogHeader>}
 
         {loading ? (
@@ -159,7 +154,10 @@ const AdminUsersModal: React.FC<Props> = ({ open, onOpenChange, asPage }) => {
             )}
           </div>
         )}
-      </Wrap>
+      </>
+  );
+  return asPage ? <div>{body}</div> : (
+    <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="bg-card border-border max-w-md max-h-[80vh] overflow-y-auto">{body}</DialogContent></Dialog>
   );
 };
 
