@@ -1,22 +1,26 @@
-import { useTheme } from "next-themes";
 import { Toaster as Sonner, toast } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
-
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
-      className="toaster group"
+      theme="dark"
+      position="top-right"
+      offset={16}
+      gap={10}
+      visibleToasts={3}
+      closeButton
+      className="toaster group apple-toaster"
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+            "group toast !rounded-[20px] !border !border-white/15 !bg-[hsl(225_28%_13%_/_0.84)] !text-foreground !shadow-[0_18px_44px_-18px_hsl(225_65%_3%_/_0.95)] !backdrop-blur-2xl",
+          title: "!font-medium !tracking-[-0.01em]",
+          description: "!text-muted-foreground",
+          actionButton: "!rounded-full !bg-primary !text-primary-foreground !shadow-[inset_0_1px_0_hsl(0_0%_100%_/_0.3)]",
+          cancelButton: "!rounded-full !bg-white/10 !text-muted-foreground",
+          closeButton: "!border-white/15 !bg-[hsl(225_28%_16%_/_0.9)] !text-muted-foreground",
         },
       }}
       {...props}

@@ -164,6 +164,24 @@
     color: hsl(207 100% 67%);
     background: hsl(211 100% 55% / 0.16);
   }
+  /* Bottom navigation reflects selection, not a temporary hover state. */
+  .mobile-nav-icon:hover {
+    color: hsl(var(--muted-foreground)) !important;
+    background: transparent !important;
+  }
+  .mobile-nav-icon.apple-icon-button-active,
+  .mobile-nav-icon.apple-icon-button-active:hover {
+    color: hsl(207 100% 67%) !important;
+    background: hsl(211 100% 55% / 0.16) !important;
+  }
+  .apple-toaster [data-sonner-toast] {
+    min-height: 58px;
+  }
+  @media (max-width: 640px) {
+    .apple-toaster [data-sonner-toast] {
+      width: min( calc(100vw - 2rem), 24rem );
+    }
+  }
   .liquid-card {
     background: linear-gradient(145deg, hsl(225 25% 27% / 0.56), hsl(228 28% 13% / 0.62));
     border: 1px solid hsl(0 0% 100% / 0.12);

@@ -31,7 +31,7 @@ const BottomNav: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const iconBtn = 'h-12 w-12 rounded-full apple-icon-button';
+  const iconBtn = 'h-12 w-12 rounded-full apple-icon-button mobile-nav-icon';
   const activeRing = 'apple-icon-button-active';
 
   if (!user) return null;
