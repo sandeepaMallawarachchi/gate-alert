@@ -14,9 +14,15 @@ import { useAppSettings } from '@/hooks/useAppSettings';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  asPage?: boolean;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, asPage }) => {
+  const Wrap = asPage
+    ? ({ children }: { children: React.ReactNode }) => <div className="glass rounded-[1.75rem] p-6">{children}</div>
+    : ({ children }: { children: React.ReactNode }) => (
+        <Dialog open={isOpen} onOpenChange={onClose}><DialogContent className="bg-card border-border">{children}</DialogContent></Dialog>
+      );
   const { profile, user, isAdmin, updateProfile, refreshProfile } = useAuth();
   const { settings, update: updateSettings } = useAppSettings();
   const [fullName, setFullName] = useState('');
@@ -66,7 +72,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       const { error } = await updateProfile(fullName);
       if (error) throw error;
       toast.success('Profile updated!');
-      onClose();
+      if (!asPage) onClose();
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
@@ -85,11 +91,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-card border-border">
-        <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">Settings</DialogTitle>
-        </DialogHeader>
+    <Wrap>
+        {!asPage && <DialogHeader><DialogTitle className="text-foreground text-xl">Settings</DialogTitle></DialogHeader>}
 
         <div className="space-y-6 py-4">
           {/* Avatar Section */}
@@ -176,8 +179,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             )}
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Wrap>
   );
 };
 
