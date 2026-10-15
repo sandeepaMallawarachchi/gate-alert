@@ -20,9 +20,10 @@ interface UserRow {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  asPage?: boolean;
 }
 
-const AdminUsersModal: React.FC<Props> = ({ open, onOpenChange }) => {
+const AdminUsersModal: React.FC<Props> = ({ open, onOpenChange, asPage }) => {
   const { user } = useAuth();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -97,12 +98,9 @@ const AdminUsersModal: React.FC<Props> = ({ open, onOpenChange }) => {
 
   const initials = (n: string) => n.split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase();
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-md max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-foreground">Manage Users</DialogTitle>
-        </DialogHeader>
+  const body = (
+    <>
+        {!asPage && <DialogHeader><DialogTitle className="text-foreground text-xl">Manage Users</DialogTitle></DialogHeader>}
 
         {loading ? (
           <div className="py-12 flex justify-center">
@@ -156,8 +154,10 @@ const AdminUsersModal: React.FC<Props> = ({ open, onOpenChange }) => {
             )}
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </>
+  );
+  return asPage ? <div>{body}</div> : (
+    <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="bg-card border-border max-w-md max-h-[80vh] overflow-y-auto">{body}</DialogContent></Dialog>
   );
 };
 

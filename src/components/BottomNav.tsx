@@ -4,17 +4,13 @@ import { Clock, MapPin, Users, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import SettingsModal from '@/components/SettingsModal';
 import { useAppSettings } from '@/hooks/useAppSettings';
-import AdminUsersModal from '@/components/AdminUsersModal';
 
 const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdmin } = useAuth();
   const { settings } = useAppSettings();
-  const [showSettings, setShowSettings] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
   const [sharingCount, setSharingCount] = useState(0);
 
   useEffect(() => {
@@ -77,8 +73,8 @@ const BottomNav: React.FC = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setShowAdmin(true)}
-              className={iconBtn}
+              onClick={() => navigate('/users')}
+              className={`${iconBtn} ${isActive('/users') ? activeRing : ''}`}
               title="Manage users"
             >
               <Users className="w-6 h-6" />
@@ -87,8 +83,8 @@ const BottomNav: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setShowSettings(true)}
-            className={iconBtn}
+            onClick={() => navigate('/settings')}
+            className={`${iconBtn} ${isActive('/settings') ? activeRing : ''}`}
             title="Profile settings"
           >
             <Settings className="w-6 h-6" />
@@ -96,8 +92,6 @@ const BottomNav: React.FC = () => {
         </div>
       </nav>
 
-      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
-      <AdminUsersModal open={showAdmin} onOpenChange={setShowAdmin} />
     </>
   );
 };

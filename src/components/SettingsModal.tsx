@@ -14,9 +14,10 @@ import { useAppSettings } from '@/hooks/useAppSettings';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  asPage?: boolean;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, asPage }) => {
   const { profile, user, isAdmin, updateProfile, refreshProfile } = useAuth();
   const { settings, update: updateSettings } = useAppSettings();
   const [fullName, setFullName] = useState('');
@@ -66,7 +67,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       const { error } = await updateProfile(fullName);
       if (error) throw error;
       toast.success('Profile updated!');
-      onClose();
+      if (!asPage) onClose();
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
@@ -84,12 +85,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       .slice(0, 2);
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-card border-border">
-        <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">Settings</DialogTitle>
-        </DialogHeader>
+  const body = (
+    <>
+        {!asPage && <DialogHeader><DialogTitle className="text-foreground text-xl">Settings</DialogTitle></DialogHeader>}
 
         <div className="space-y-6 py-4">
           {/* Avatar Section */}
@@ -176,8 +174,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             )}
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </>
+  );
+  return asPage ? <div className="glass rounded-[1.75rem] p-6">{body}</div> : (
+    <Dialog open={isOpen} onOpenChange={onClose}><DialogContent className="bg-card border-border">{body}</DialogContent></Dialog>
   );
 };
 
