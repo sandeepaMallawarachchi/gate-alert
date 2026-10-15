@@ -153,7 +153,7 @@ const InstallInstructionsModal = () => {
             </div>
 
             <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-              <p className="text-sm text-yellow-600 dark:text-yellow-400">
+              <p className="text-sm text-yellow-600 dark:text-success">
                 <strong>Note:</strong> This only works in Safari. If you're using another browser, open this page in Safari first.
               </p>
             </div>

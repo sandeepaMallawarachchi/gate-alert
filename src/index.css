@@ -15,8 +15,8 @@
     --popover: 225 22% 15%;
     --popover-foreground: 45 10% 92%;
 
-    --primary: 38 100% 50%;
-    --primary-foreground: 220 20% 8%;
+    --primary: 215 90% 52%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 225 18% 22%;
     --secondary-foreground: 45 10% 92%;
@@ -24,32 +24,32 @@
     --muted: 225 18% 18%;
     --muted-foreground: 225 12% 65%;
 
-    --accent: 38 100% 50%;
-    --accent-foreground: 220 20% 8%;
+    --accent: 215 90% 52%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 225 20% 100% / 0.1;
     --input: 225 18% 20%;
-    --ring: 38 100% 50%;
+    --ring: 215 90% 52%;
 
     --radius: 1.5rem;
 
     /* Custom alert colors */
-    --alert: 38 100% 50%;
-    --alert-glow: 38 100% 60%;
+    --alert: 215 90% 52%;
+    --alert-glow: 210 100% 62%;
     --alert-pulse: 0 80% 55%;
-    --success: 142 70% 45%;
+    --success: 142 70% 50%;
 
     --sidebar-background: 220 18% 10%;
     --sidebar-foreground: 45 10% 92%;
-    --sidebar-primary: 38 100% 50%;
-    --sidebar-primary-foreground: 220 20% 8%;
+    --sidebar-primary: 215 90% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 15% 18%;
     --sidebar-accent-foreground: 45 10% 92%;
     --sidebar-border: 220 15% 20%;
-    --sidebar-ring: 38 100% 50%;
+    --sidebar-ring: 215 90% 52%;
   }
 
   .dark {
@@ -59,19 +59,19 @@
     --card-foreground: 45 10% 92%;
     --popover: 225 22% 15%;
     --popover-foreground: 45 10% 92%;
-    --primary: 38 100% 50%;
-    --primary-foreground: 220 20% 8%;
+    --primary: 215 90% 52%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 225 18% 22%;
     --secondary-foreground: 45 10% 92%;
     --muted: 225 18% 18%;
     --muted-foreground: 225 12% 65%;
-    --accent: 38 100% 50%;
-    --accent-foreground: 220 20% 8%;
+    --accent: 215 90% 52%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
     --border: 225 20% 100% / 0.1;
     --input: 225 18% 20%;
-    --ring: 38 100% 50%;
+    --ring: 215 90% 52%;
   }
 }
 
@@ -85,7 +85,7 @@
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
     background-image:
       radial-gradient(ellipse 80% 50% at 15% 0%, hsl(225 45% 22% / 0.7), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 90% 100%, hsl(38 80% 30% / 0.18), transparent 60%);
+      radial-gradient(ellipse 60% 40% at 90% 100%, hsl(215 80% 35% / 0.2), transparent 60%);
     background-attachment: fixed;
     min-height: 100vh;
   }
