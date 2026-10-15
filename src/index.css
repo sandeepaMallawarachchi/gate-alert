@@ -6,23 +6,23 @@
 
 @layer base {
   :root {
-    --background: 220 20% 8%;
+    --background: 225 28% 9%;
     --foreground: 45 10% 92%;
 
-    --card: 220 18% 12%;
+    --card: 225 22% 16%;
     --card-foreground: 45 10% 92%;
 
-    --popover: 220 18% 12%;
+    --popover: 225 22% 15%;
     --popover-foreground: 45 10% 92%;
 
     --primary: 38 100% 50%;
     --primary-foreground: 220 20% 8%;
 
-    --secondary: 220 15% 18%;
+    --secondary: 225 18% 22%;
     --secondary-foreground: 45 10% 92%;
 
-    --muted: 220 15% 15%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 225 18% 18%;
+    --muted-foreground: 225 12% 65%;
 
     --accent: 38 100% 50%;
     --accent-foreground: 220 20% 8%;
@@ -30,11 +30,11 @@
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 20%;
-    --input: 220 15% 18%;
+    --border: 225 20% 100% / 0.1;
+    --input: 225 18% 20%;
     --ring: 38 100% 50%;
 
-    --radius: 0.75rem;
+    --radius: 1.5rem;
 
     /* Custom alert colors */
     --alert: 38 100% 50%;
@@ -53,24 +53,24 @@
   }
 
   .dark {
-    --background: 220 20% 8%;
+    --background: 225 28% 9%;
     --foreground: 45 10% 92%;
-    --card: 220 18% 12%;
+    --card: 225 22% 16%;
     --card-foreground: 45 10% 92%;
-    --popover: 220 18% 12%;
+    --popover: 225 22% 15%;
     --popover-foreground: 45 10% 92%;
     --primary: 38 100% 50%;
     --primary-foreground: 220 20% 8%;
-    --secondary: 220 15% 18%;
+    --secondary: 225 18% 22%;
     --secondary-foreground: 45 10% 92%;
-    --muted: 220 15% 15%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 225 18% 18%;
+    --muted-foreground: 225 12% 65%;
     --accent: 38 100% 50%;
     --accent-foreground: 220 20% 8%;
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 20%;
-    --input: 220 15% 18%;
+    --border: 225 20% 100% / 0.1;
+    --input: 225 18% 20%;
     --ring: 38 100% 50%;
   }
 }
@@ -82,11 +82,25 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 15% 0%, hsl(225 45% 22% / 0.7), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 100%, hsl(38 80% 30% / 0.18), transparent 60%);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 }
 
 @layer utilities {
+  /* Liquid glass surface */
+  .glass {
+    background: linear-gradient(160deg, hsl(225 25% 30% / 0.45), hsl(225 25% 16% / 0.55));
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid hsl(0 0% 100% / 0.1);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.12), inset 0 -1px 0 hsl(0 0% 0% / 0.2), 0 10px 30px -10px hsl(225 50% 3% / 0.6);
+  }
+
   /* Buzzer glow animation */
   @keyframes buzzer-pulse {
     0%, 100% {
