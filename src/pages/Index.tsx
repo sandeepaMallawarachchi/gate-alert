@@ -144,31 +144,31 @@ const Index: React.FC = () => {
           </div>
         </button>
         
-        <div className="hidden lg:flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="apple-icon-button" onClick={() => navigate('/alerts')} title="Today's alert history" aria-label="Today's alert history">
-            <BellRing className="w-5 h-5" />
+        <nav aria-label="Main navigation" className="hidden lg:flex items-center gap-1">
+          <Button variant="ghost" size="default" className="apple-icon-button" onClick={() => navigate('/alerts')} title="Today's alert history" aria-label="Today's alert history">
+            Alert History
           </Button>
-          <NotificationPermission />
+          <NotificationPermission showLabel />
           {settings.attendance_enabled && (
           <Button
             variant="ghost"
-            size="icon"
+            size="default"
             onClick={() => navigate('/attendance')}
             className="apple-icon-button"
             title="Attendance"
           >
-            <Clock className="w-5 h-5" />
+            Attendance
           </Button>
           )}
           {settings.locations_enabled && (
           <Button
             variant="ghost"
-            size="icon"
+            size="default"
             onClick={() => navigate('/locations')}
             className="relative apple-icon-button"
             title="Live locations"
           >
-            <MapPin className={`w-5 h-5 ${sharingCount > 0 ? 'text-success animate-pulse drop-shadow-[0_0_6px_rgba(52,199,89,0.7)]' : ''}`} />
+            Locations
             {sharingCount > 0 && (
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-success animate-ping" />
             )}
@@ -177,23 +177,23 @@ const Index: React.FC = () => {
           {isAdmin && (
             <Button
               variant="ghost"
-              size="icon"
+              size="default"
               onClick={() => navigate('/users')}
               className="apple-icon-button"
               title="Manage users"
             >
-              <Users className="w-5 h-5" />
+              Manage Team
             </Button>
           )}
           <Button
             variant="ghost"
-            size="icon"
+            size="default"
             onClick={handleLogout}
             className="apple-icon-button hover:!text-destructive"
           >
-            <LogOut className="w-5 h-5" />
+            Log out
           </Button>
-        </div>
+        </nav>
 
         {/* Mobile/tablet header: notification stays here, other icons live in bottom nav */}
         <div className="lg:hidden flex items-center gap-2">

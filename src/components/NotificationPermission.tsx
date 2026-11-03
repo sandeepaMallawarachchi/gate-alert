@@ -5,9 +5,10 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface NotificationPermissionProps {
   onNotificationReceived?: (payload: any) => void;
+  showLabel?: boolean;
 }
 
-const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onNotificationReceived }) => {
+const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onNotificationReceived, showLabel = false }) => {
   const { isEnabled, isLoading, enableNotifications } = usePushNotifications(onNotificationReceived);
 
   // Hide when notifications are enabled
@@ -18,13 +19,13 @@ const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onNotif
   return (
     <Button
       variant="ghost"
-      size="icon"
+      size={showLabel ? 'default' : 'icon'}
       onClick={enableNotifications}
       disabled={isLoading}
       className="text-muted-foreground hover:text-foreground hover:bg-secondary"
       title="Enable push notifications"
     >
-      {isLoading ? (
+      {showLabel ? (isLoading ? 'Enabling…' : 'Enable notifications') : isLoading ? (
         <Loader2 className="w-5 h-5 animate-spin" />
       ) : (
         <Bell className="w-5 h-5 animate-pulse" />
