@@ -263,6 +263,20 @@ const Auth: React.FC = () => {
           </TabsContent>
         </Tabs>
       </Card>
+      <footer className="mt-8 w-full max-w-md space-y-1 px-2 text-center text-xs leading-relaxed text-muted-foreground">
+        <p>Copyright © 2026. All rights reserved.</p>
+        <p>
+          Designed and Developed by{' '}
+          <a
+            href="https://www.linkedin.com/in/sandeepa-mallawarachchi"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-sm font-semibold text-primary transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            Sandeepa Mallawarachchi
+          </a>
+        </p>
+      </footer>
       <ForgotPasswordModal open={forgotOpen} onOpenChange={setForgotOpen} />
     </div>
   );
