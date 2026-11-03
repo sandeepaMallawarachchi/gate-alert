@@ -203,6 +203,29 @@
   }
 
   /* Buzzer glow animation */
+  @keyframes alert-send-ring {
+    0%, 60%, 100% { transform: rotate(0deg); }
+    10%, 30% { transform: rotate(14deg); }
+    20%, 40% { transform: rotate(-14deg); }
+    50% { transform: rotate(7deg); }
+  }
+  @keyframes alert-send-wave {
+    0% { transform: scale(1); opacity: 0; }
+    15% { opacity: 0.65; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+  .alert-send-bell {
+    transform-origin: 50% 15%;
+    animation: alert-send-ring 1.35s ease-in-out infinite;
+  }
+  .alert-send-ripple {
+    animation: alert-send-wave 1.8s ease-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .alert-send-bell, .alert-send-ripple { animation: none; }
+    .alert-send-ripple { display: none; }
+    [aria-busy="true"].buzzer-glow { animation: none; }
+  }
   @keyframes buzzer-pulse {
     0%, 100% {
       box-shadow: 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { LogOut, Loader2, Users, MapPin, Settings, Clock, Bell, BellRing } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -21,6 +21,21 @@ const Index: React.FC = () => {
   const [alertSenderAvatar, setAlertSenderAvatar] = useState<string>('');
   const [sendingAlert, setSendingAlert] = useState(false);
   const [sharingCount, setSharingCount] = useState(0);
+  const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (previewTimer.current) clearTimeout(previewTimer.current);
+  }, []);
+
+  const previewSendingAnimation = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (!import.meta.env.DEV || sendingAlert) return;
+    setSendingAlert(true);
+    previewTimer.current = setTimeout(() => {
+      setSendingAlert(false);
+      previewTimer.current = null;
+    }, 3000);
+  };
 
   // Handle foreground push notifications - only trigger alert if NOT already shown via realtime
   const handleNotificationReceived = useCallback((payload: any) => {
@@ -80,6 +95,7 @@ const Index: React.FC = () => {
   }
 
   const handleBuzzerClick = async () => {
+    if (sendingAlert) return;
     setSendingAlert(true);
     
     try {
@@ -224,8 +240,9 @@ const Index: React.FC = () => {
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm px-1">
           {/* Send Alert */}
           <Card
-            className="col-span-2 liquid-card px-5 py-9 flex flex-col items-center justify-center gap-3 cursor-pointer border-primary/30 overflow-hidden transition-transform hover:-translate-y-0.5"
-            onClick={handleBuzzerClick}
+            className={`col-span-2 liquid-card px-5 py-9 flex flex-col items-center justify-center gap-3 border-primary/30 overflow-hidden transition-transform ${sendingAlert ? 'pointer-events-none cursor-wait' : 'cursor-pointer hover:-translate-y-0.5'}`}
+            onClick={sendingAlert ? undefined : handleBuzzerClick}
+            aria-disabled={sendingAlert}
           >
             <div className="relative flex items-center justify-center">
               {!sendingAlert && (
@@ -235,19 +252,21 @@ const Index: React.FC = () => {
                 </>
               )}
               {sendingAlert && (
-                <div className="absolute w-32 h-32 rounded-full border-4 border-primary/50 animate-pulse" />
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
+                  {[0, 1, 2].map((ring) => (
+                    <span key={ring} className="alert-send-ripple absolute h-28 w-28 rounded-full border border-primary/60" style={{ animationDelay: `${ring * 0.45}s` }} />
+                  ))}
+                </div>
               )}
               <button
                 disabled={sendingAlert}
-                className="relative w-28 h-28 rounded-full bg-gradient-to-br from-primary to-alert-glow buzzer-glow transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center border-4 border-primary/50 shadow-[inset_0_-8px_20px_rgba(0,0,0,0.3)]"
+                aria-busy={sendingAlert}
+                aria-label={sendingAlert ? 'Sending gate alert' : 'Send gate alert'}
+                className="relative w-28 h-28 rounded-full bg-gradient-to-br from-primary to-alert-glow buzzer-glow transition-all duration-200 hover:scale-105 active:scale-95 disabled:cursor-wait flex items-center justify-center border-4 border-primary/50 shadow-[inset_0_-8px_20px_rgba(0,0,0,0.3)]"
               >
                 <div className="flex flex-col items-center gap-1">
-                  {sendingAlert ? (
-                    <Loader2 className="w-9 h-9 text-primary-foreground drop-shadow-lg animate-spin" />
-                  ) : (
-                    <Bell className="w-9 h-9 text-primary-foreground drop-shadow-lg" />
-                  )}
-                  <span className="text-xs font-bold text-primary-foreground tracking-wider uppercase">
+                  <Bell className={`w-9 h-9 text-primary-foreground drop-shadow-lg ${sendingAlert ? 'alert-send-bell' : ''}`} aria-hidden="true" />
+                  <span aria-live="polite" className="text-xs font-bold text-primary-foreground tracking-wider uppercase">
                     {sendingAlert ? 'Sending...' : 'Alert'}
                   </span>
                 </div>
@@ -255,6 +274,16 @@ const Index: React.FC = () => {
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Notify all members instantly</p>
+              {import.meta.env.DEV && (
+                <button
+                  type="button"
+                  onClick={previewSendingAnimation}
+                  disabled={sendingAlert}
+                  className="mt-3 rounded-full px-3 py-1 text-xs text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+                >
+                  Preview animation (no alerts sent)
+                </button>
+              )}
             </div>
           </Card>
 
