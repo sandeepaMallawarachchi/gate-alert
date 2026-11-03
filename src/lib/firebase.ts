@@ -20,8 +20,12 @@ const getAppServiceWorker = async (): Promise<ServiceWorkerRegistration | null> 
   if (!('serviceWorker' in navigator)) return null;
 
   try {
-    // Use the PWA service worker (registered by vite-plugin-pwa at scope '/')
-    return await navigator.serviceWorker.ready;
+    // Use the PWA service worker (registered at scope '/'). In preview/dev no
+    // worker is registered, so don't wait forever.
+    return await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 10000)),
+    ]);
   } catch (error) {
     console.error('Service worker not ready:', error);
     return null;

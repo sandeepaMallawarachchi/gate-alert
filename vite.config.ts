@@ -17,7 +17,8 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: "auto",
+      // Registration happens only in src/lib/registerServiceWorker.ts (guarded).
+      injectRegister: null,
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
@@ -52,7 +53,7 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       devOptions: {
-        enabled: true,
+        enabled: false,
       },
     }),
   ].filter(Boolean),
