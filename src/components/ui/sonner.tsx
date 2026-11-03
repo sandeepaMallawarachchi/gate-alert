@@ -6,7 +6,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme="dark"
-      position="top-right"
+      position="bottom-right"
       offset={16}
       gap={10}
       visibleToasts={3}
@@ -15,12 +15,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "group toast !rounded-[20px] !border !border-white/15 !bg-[hsl(225_28%_13%_/_0.84)] !text-foreground !shadow-[0_18px_44px_-18px_hsl(225_65%_3%_/_0.95)] !backdrop-blur-2xl",
+            "group toast !rounded-[20px] !border !border-white/25 !bg-[hsl(var(--primary)/0.78)] !bg-gradient-to-br !from-white/15 !to-transparent !text-white !shadow-[inset_0_1px_0_hsl(0_0%_100%_/_0.3),0_18px_44px_-18px_hsl(var(--primary)/0.6)] !backdrop-blur-2xl !backdrop-saturate-150",
           title: "!font-medium !tracking-[-0.01em]",
-          description: "!text-muted-foreground",
-          actionButton: "!rounded-full !bg-primary !text-primary-foreground !shadow-[inset_0_1px_0_hsl(0_0%_100%_/_0.3)]",
-          cancelButton: "!rounded-full !bg-white/10 !text-muted-foreground",
-          closeButton: "!border-white/15 !bg-[hsl(225_28%_16%_/_0.9)] !text-muted-foreground",
+          description: "!text-white/85",
+          actionButton: "!rounded-full !bg-white !text-primary !shadow-[inset_0_1px_0_hsl(0_0%_100%_/_0.3)]",
+          cancelButton: "!rounded-full !bg-white/15 !text-white",
+          closeButton: "!border-white/25 !bg-primary !text-white",
         },
       }}
       {...props}

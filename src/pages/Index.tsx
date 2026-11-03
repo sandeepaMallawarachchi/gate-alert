@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { LogOut, Loader2, Users, MapPin, Settings, Clock, Bell } from 'lucide-react';
+import { LogOut, Loader2, Users, MapPin, Settings, Clock, Bell, BellRing } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -148,6 +148,9 @@ const Index: React.FC = () => {
         </button>
         
         <div className="hidden lg:flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="apple-icon-button" onClick={() => navigate('/alerts')} title="Today's alert history" aria-label="Today's alert history">
+            <BellRing className="w-5 h-5" />
+          </Button>
           <NotificationPermission onNotificationReceived={handleNotificationReceived} />
           {settings.attendance_enabled && (
           <Button

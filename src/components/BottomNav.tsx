@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Clock, Home, MapPin, Users, Settings } from 'lucide-react';
+import { Clock, Home, BellRing, MapPin, Users, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,7 +31,7 @@ const BottomNav: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const iconBtn = 'h-12 w-12 rounded-full apple-icon-button mobile-nav-icon';
+  const iconBtn = 'h-11 w-11 shrink-0 rounded-full apple-icon-button mobile-nav-icon';
   const activeRing = 'apple-icon-button-active';
 
   if (!user) return null;
@@ -42,7 +42,7 @@ const BottomNav: React.FC = () => {
         className="lg:hidden fixed bottom-3 inset-x-4 z-40 glass rounded-full"
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="flex items-center justify-around h-16 px-4">
+        <div className="flex items-center justify-around h-16 px-2">
           <Button
             variant="ghost"
             size="icon"
@@ -52,6 +52,17 @@ const BottomNav: React.FC = () => {
             aria-label="Home"
           >
             <Home className="w-6 h-6" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/alerts')}
+            className={`${iconBtn} ${isActive('/alerts') ? activeRing : ''}`}
+            title="Today's alerts"
+            aria-label="Today's alert history"
+            aria-current={isActive('/alerts') ? 'page' : undefined}
+          >
+            <BellRing className="w-6 h-6" />
           </Button>
           {settings.attendance_enabled && (
           <Button

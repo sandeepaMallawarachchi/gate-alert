@@ -156,6 +156,17 @@ Deno.serve(async (req) => {
     const tag = (bodyJson?.tag as string) || (isLocation ? 'location-share' : 'gate-alert');
     const url = (bodyJson?.url as string) || (isLocation ? '/locations' : '/');
 
+    // Record the authenticated gate request, including requests made through MCP.
+    // This is a request log, not a notification-delivery receipt.
+    if (notifType === 'gate_alert') {
+      const { error: historyError } = await supabase.from('gate_alert_history').insert({
+        sender_id: userId,
+        sender_name: senderName,
+        sender_avatar: senderAvatar || null,
+      });
+      if (historyError) throw historyError;
+    }
+
     const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
     if (!serviceAccountJson) {
       throw new Error('FIREBASE_SERVICE_ACCOUNT not configured');
