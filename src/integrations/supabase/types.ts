@@ -14,30 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      gate_alert_history: {
-        Row: {
-          id: string
-          sender_id: string
-          sender_name: string
-          sender_avatar: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          sender_id: string
-          sender_name: string
-          sender_avatar?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          sender_id?: string
-          sender_name?: string
-          sender_avatar?: string | null
-          created_at?: string
-        }
-        Relationships: []
-      }
       app_settings: {
         Row: {
           attendance_enabled: boolean
@@ -158,6 +134,30 @@ export type Database = {
           token?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      gate_alert_history: {
+        Row: {
+          created_at: string
+          id: string
+          sender_avatar: string | null
+          sender_id: string
+          sender_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          sender_avatar?: string | null
+          sender_id: string
+          sender_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          sender_avatar?: string | null
+          sender_id?: string
+          sender_name?: string
         }
         Relationships: []
       }

@@ -8,6 +8,13 @@
       "when": 1791862332950,
       "tag": "0000_app_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793679472114,
+      "tag": "0001_gate_alert_history",
+      "breakpoints": true
     }
   ]
 }
