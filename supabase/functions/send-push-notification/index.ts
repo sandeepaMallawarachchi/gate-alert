@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { buildPushMessage, classifyFcmResponse } from '../_shared/push-delivery.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -86,6 +87,9 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const requestStarted = Date.now();
+  let alertId = crypto.randomUUID();
+  const sentAt = new Date().toISOString();
   try {
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
@@ -130,7 +134,7 @@ Deno.serve(async (req) => {
     // Get sender info from database instead of trusting client
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('full_name, avatar_url')
+      .select('full_name, avatar_url, is_active')
       .eq('user_id', userId)
       .single();
 
@@ -141,12 +145,20 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (profile.is_active === false) {
+      return new Response(JSON.stringify({ error: 'Account is inactive' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     const senderName = profile.full_name || 'Unknown';
     const senderAvatar = profile.avatar_url || '';
 
     // Optional body params to customize the notification (backward compatible)
     let bodyJson: any = {};
     try { bodyJson = await req.json(); } catch { bodyJson = {}; }
+    if (typeof bodyJson?.alert_id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(bodyJson.alert_id)) {
+      alertId = bodyJson.alert_id;
+    }
     const notifType = (bodyJson?.type as string) || 'gate_alert';
     const isLocation = notifType === 'location_share';
     const title = (bodyJson?.title as string) || (isLocation ? '📍 Location shared' : '🚨 Gate Alert!');
@@ -154,12 +166,16 @@ Deno.serve(async (req) => {
       ? `${senderName} shared their location`
       : `${senderName} is requesting gate access!`);
     const tag = (bodyJson?.tag as string) || (isLocation ? 'location-share' : 'gate-alert');
-    const url = (bodyJson?.url as string) || (isLocation ? '/locations' : '/');
+    const requestedUrl = typeof bodyJson?.url === 'string' ? bodyJson.url : '';
+    const url = requestedUrl.startsWith('/') && !requestedUrl.startsWith('//') && !requestedUrl.includes('\\')
+      ? requestedUrl : (isLocation ? '/locations' : '/');
 
     // Record the authenticated gate request, including requests made through MCP.
     // This is a request log, not a notification-delivery receipt.
     if (notifType === 'gate_alert') {
       const { error: historyError } = await supabase.from('gate_alert_history').insert({
+        id: alertId,
+        created_at: sentAt,
         sender_id: userId,
         sender_name: senderName,
         sender_avatar: senderAvatar || null,
@@ -173,7 +189,7 @@ Deno.serve(async (req) => {
     }
 
     const serviceAccount: ServiceAccount = JSON.parse(serviceAccountJson);
-    const accessToken = await getAccessToken(serviceAccount);
+
 
     const target = (bodyJson?.target as string) || 'others'; // 'self' | 'others'
     const dedupePerDay = Boolean(bodyJson?.dedupe_per_day);
@@ -197,8 +213,12 @@ Deno.serve(async (req) => {
     }
 
 
-    // Get FCM tokens: to self, or to everyone except sender
-    const tokensQuery = supabase.from('fcm_tokens').select('token');
+    // Only notify active team members.
+    const { data: activeProfiles, error: activeError } = await supabase.from('profiles')
+      .select('user_id').eq('is_active', true);
+    if (activeError) throw activeError;
+    const activeIds = (activeProfiles ?? []).map((p) => p.user_id);
+    const tokensQuery = supabase.from('fcm_tokens').select('token').in('user_id', activeIds);
     const { data: tokens, error } = await (
       target === 'self'
         ? tokensQuery.eq('user_id', userId)
@@ -211,71 +231,60 @@ Deno.serve(async (req) => {
 
     if (!tokens || tokens.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, message: 'No tokens to notify' }),
+        JSON.stringify({ success: false, accepted: 0, failed: 0, attempted: 0, alert_id: alertId, message: 'No registered devices to notify' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Send notifications using FCM HTTP v1 API
-    // Using data-only messages to control display and avoid duplicate system notifications
-    const notifications = tokens.map(async ({ token }) => {
-      const response = await fetch(
-        `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
+    const accessToken = await getAccessToken(serviceAccount);
+    const content = {
+      id: alertId, sentAt, title, body, tag, url, type: notifType,
+      senderId: userId, senderName, senderAvatar,
+    };
+    const sendOne = async ({ token }: { token: string }) => {
+      try {
+        const response = await fetch(
+          'https://fcm.googleapis.com/v1/projects/' + serviceAccount.project_id + '/messages:send',
+          {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: buildPushMessage(token, content) }),
+            signal: AbortSignal.timeout(12_000),
           },
-          body: JSON.stringify({
-            message: {
-              token: token,
-              // Use data-only message to let service worker handle display
-              // This prevents duplicate notifications from FCM auto-display
-              data: {
-                sender_id: userId,
-                sender_name: senderName,
-                sender_avatar: senderAvatar,
-                type: notifType,
-                title,
-                body,
-                tag,
-                url,
-              },
-              android: {
-                priority: 'high',
-              },
-              webpush: {
-                headers: {
-                  Urgency: 'high',
-                  TTL: '60',
-                },
-              },
-              apns: {
-                headers: {
-                  'apns-priority': '10',
-                  'apns-push-type': 'background',
-                },
-                payload: {
-                  aps: {
-                    'content-available': 1,
-                  },
-                },
-              },
-            }
-          }),
-        }
-      );
-
-      return response.json();
-    });
-
-    const results = await Promise.all(notifications);
-    console.log('Push notification results:', results);
-
+        );
+        const result = classifyFcmResponse(response.ok, await response.json());
+        console.log(JSON.stringify({
+          event: 'push_fcm_result', alert_id: alertId, accepted: result.accepted,
+          http_status: response.status, code: result.accepted ? undefined : result.code,
+          message_id: result.messageId, elapsed_ms: Date.now() - requestStarted,
+        }));
+        return { ...result, token };
+      } catch {
+        // A timeout is ambiguous: do not automatically resend and risk duplicates.
+        console.warn(JSON.stringify({ event: 'push_request_failed', alert_id: alertId, elapsed_ms: Date.now() - requestStarted }));
+        return { accepted: false, invalidToken: false, code: 'NETWORK_OR_TIMEOUT', token };
+      }
+    };
+    const results: Awaited<ReturnType<typeof sendOne>>[] = [];
+    // Bound concurrency so large teams cannot exhaust outgoing connections.
+    for (let start = 0; start < tokens.length; start += 10) {
+      results.push(...await Promise.all(tokens.slice(start, start + 10).map(sendOne)));
+    }
+    const expiredTokens = results.filter((r) => r.invalidToken).map((r) => r.token);
+    if (expiredTokens.length) {
+      const { error: cleanupError } = await supabase.from('fcm_tokens').delete().in('token', expiredTokens);
+      if (cleanupError) console.warn('Expired push token cleanup failed:', cleanupError.code);
+    }
+    const accepted = results.filter((r) => r.accepted).length;
+    const failed = results.length - accepted;
+    console.log(JSON.stringify({
+      event: 'push_summary', alert_id: alertId, sent_at: sentAt,
+      attempted: results.length, accepted, failed, expired: expiredTokens.length,
+      elapsed_ms: Date.now() - requestStarted,
+    }));
     return new Response(
-      JSON.stringify({ success: true, sent: tokens.length }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: accepted > 0, accepted, sent: accepted, failed, attempted: results.length, alert_id: alertId, sent_at: sentAt }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (error) {
     console.error('Error sending push notification:', error);

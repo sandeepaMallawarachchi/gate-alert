@@ -15,6 +15,7 @@ import ManageUsers from "./pages/ManageUsers";
 import NotFound from "./pages/NotFound";
 import BottomNav from "./components/BottomNav";
 import AlertHistory from "./pages/AlertHistory";
+import GateAlertReceiver from "./components/GateAlertReceiver";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <GateAlertReceiver />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />

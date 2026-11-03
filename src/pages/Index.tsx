@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { LogOut, Loader2, Users, MapPin, Settings, Clock, Bell, BellRing } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import AlertOverlay from '@/components/AlertOverlay';
 import InstallInstructionsModal from '@/components/InstallInstructionsModal';
 import NotificationPermission from '@/components/NotificationPermission';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,13 +15,9 @@ const Index: React.FC = () => {
   const { user, profile, isAdmin, loading, signOut } = useAuth();
   const { settings } = useAppSettings();
   const navigate = useNavigate();
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertSenderName, setAlertSenderName] = useState<string>('');
-  const [alertSenderAvatar, setAlertSenderAvatar] = useState<string>('');
   const [sendingAlert, setSendingAlert] = useState(false);
   const [sharingCount, setSharingCount] = useState(0);
   const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   useEffect(() => () => {
     if (previewTimer.current) clearTimeout(previewTimer.current);
   }, []);
@@ -36,34 +31,6 @@ const Index: React.FC = () => {
       previewTimer.current = null;
     }, 3000);
   };
-
-  // Handle foreground push notifications - only trigger alert if NOT already shown via realtime
-  const handleNotificationReceived = useCallback((payload: any) => {
-    // Push notifications are handled by the service worker for background
-    // For foreground, we rely on realtime broadcast to avoid duplicates
-    console.log('Foreground push received (handled by realtime):', payload);
-  }, []);
-
-  // Subscribe to realtime alerts from other users
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('gate-alerts')
-      .on('broadcast', { event: 'gate_alert' }, (payload) => {
-        // Don't show alert to yourself
-        if (payload.payload.sender_id !== user.id) {
-          setAlertSenderName(payload.payload.sender_name || 'Someone');
-          setAlertSenderAvatar(payload.payload.sender_avatar || '');
-          setShowAlert(true);
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
 
   // Track how many members are currently sharing location
   useEffect(() => {
@@ -97,32 +64,46 @@ const Index: React.FC = () => {
   const handleBuzzerClick = async () => {
     if (sendingAlert) return;
     setSendingAlert(true);
+    const alertId = crypto.randomUUID();
+    let realtimeSent = false;
     
     try {
       // Broadcast alert to all other users via realtime
+      // Reuse the app-wide receiver channel; it owns subscription cleanup.
       const channel = supabase.channel('gate-alerts');
       
-      await channel.send({
+      const broadcastResult = await channel.send({
         type: 'broadcast',
         event: 'gate_alert',
         payload: {
+          alert_id: alertId,
           sender_id: user?.id,
           sender_name: profile?.full_name || 'Unknown',
           sender_avatar: profile?.avatar_url || '',
           timestamp: new Date().toISOString(),
         },
       });
+      realtimeSent = broadcastResult === 'ok';
 
-      // Also send push notification via edge function
-      try {
-      // Edge function now gets sender info from database based on authenticated user
-      await supabase.functions.invoke('send-push-notification');
-      } catch (error) {
-        console.error('Error sending push notification:', error);
+      const { data, error } = await supabase.functions.invoke('send-push-notification', { body: { alert_id: alertId } });
+      if (error) throw error;
+      // Provider acceptance is not a receipt from every phone.
+      if (data?.accepted > 0) {
+        if (data.failed > 0) toast.warning('Alert submitted, but some device notifications failed.');
+        else toast.success('Alert submitted to registered devices.');
+      } else if (data?.accepted === 0) {
+        toast.warning(realtimeSent
+          ? 'Live alert sent. No device push notifications were accepted.'
+          : 'No device notifications were accepted. Please try again.');
+      } else {
+        // Compatibility while an older Edge Function is still deployed.
+        toast.success('Alert submitted.');
       }
-
-      // Just show toast to sender, not the alert
-      toast.success('Alert sent to all members!');
+    } catch (error) {
+      console.error('Gate alert request failed:', error);
+      toast.error(realtimeSent
+        ? 'Live alert sent, but background notifications could not be confirmed.'
+        : 'Could not send the alert. Please try again.');
     } finally {
       setSendingAlert(false);
     }
@@ -167,7 +148,7 @@ const Index: React.FC = () => {
           <Button variant="ghost" size="icon" className="apple-icon-button" onClick={() => navigate('/alerts')} title="Today's alert history" aria-label="Today's alert history">
             <BellRing className="w-5 h-5" />
           </Button>
-          <NotificationPermission onNotificationReceived={handleNotificationReceived} />
+          <NotificationPermission />
           {settings.attendance_enabled && (
           <Button
             variant="ghost"
@@ -216,7 +197,7 @@ const Index: React.FC = () => {
 
         {/* Mobile/tablet header: notification stays here, other icons live in bottom nav */}
         <div className="lg:hidden flex items-center gap-2">
-          <NotificationPermission onNotificationReceived={handleNotificationReceived} />
+          <NotificationPermission />
           <Button
             variant="ghost"
             size="icon"
@@ -358,14 +339,6 @@ const Index: React.FC = () => {
         </div>
       </main>
 
-
-      {/* Alert Overlay */}
-      <AlertOverlay
-        isOpen={showAlert}
-        onClose={() => setShowAlert(false)}
-        senderName={alertSenderName}
-        senderAvatar={alertSenderAvatar}
-      />
 
       {/* Settings Modal */}
 

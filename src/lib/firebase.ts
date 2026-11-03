@@ -33,6 +33,7 @@ const getAppServiceWorker = async (): Promise<ServiceWorkerRegistration | null> 
 };
 
 export const initializeFirebase = () => {
+  if (messaging) return messaging;
   if (!firebaseConfig.apiKey) {
     console.warn('Firebase config not set. Push notifications will not work.');
     return null;
@@ -48,14 +49,18 @@ export const initializeFirebase = () => {
   }
 };
 
-export const requestNotificationPermission = async (): Promise<string | null> => {
+export const requestNotificationPermission = async (askPermission = true): Promise<string | null> => {
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) return null;
   if (!messaging) {
     messaging = initializeFirebase();
     if (!messaging) return null;
   }
 
-  const permission = await Notification.requestPermission();
+  const permission = askPermission && Notification.permission === 'default'
+    ? await Notification.requestPermission()
+    : Notification.permission;
   if (permission !== 'granted') {
+    if (!askPermission) return null;
     throw new Error(`Notification permission: ${permission}`);
   }
 
@@ -74,7 +79,6 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
       throw new Error('Empty FCM token returned');
     }
 
-    console.log('FCM Token:', token);
     return token;
   } catch (error) {
     const msg = error instanceof Error ? error.message : JSON.stringify(error);
