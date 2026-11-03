@@ -15,6 +15,13 @@
       "when": 1793679472114,
       "tag": "0001_gate_alert_history",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793681034648,
+      "tag": "0002_push_token_refresh",
+      "breakpoints": true
     }
   ]
 }
