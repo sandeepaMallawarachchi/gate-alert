@@ -137,6 +137,30 @@ export type Database = {
         }
         Relationships: []
       }
+      gate_alert_history: {
+        Row: {
+          created_at: string
+          id: string
+          sender_avatar: string | null
+          sender_id: string
+          sender_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          sender_avatar?: string | null
+          sender_id: string
+          sender_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          sender_avatar?: string | null
+          sender_id?: string
+          sender_name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
