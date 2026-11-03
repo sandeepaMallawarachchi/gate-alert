@@ -224,7 +224,7 @@ const Index: React.FC = () => {
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm px-1">
           {/* Send Alert */}
           <Card
-            className="col-span-2 liquid-card p-5 flex flex-col items-center justify-center gap-3 cursor-pointer border-primary/30 overflow-hidden transition-transform hover:-translate-y-0.5"
+            className="col-span-2 liquid-card px-5 py-9 flex flex-col items-center justify-center gap-3 cursor-pointer border-primary/30 overflow-hidden transition-transform hover:-translate-y-0.5"
             onClick={handleBuzzerClick}
           >
             <div className="relative flex items-center justify-center">
@@ -261,7 +261,7 @@ const Index: React.FC = () => {
           {/* Mark Attendance */}
           {settings.attendance_enabled && (
           <Card
-            className={`${settings.locations_enabled ? '' : 'col-span-2'} liquid-card p-5 flex flex-col items-center justify-center gap-3 cursor-pointer transition-transform hover:-translate-y-0.5`}
+            className={`col-span-2 liquid-card p-5 flex flex-col items-center justify-center gap-3 cursor-pointer transition-transform hover:-translate-y-0.5`}
             onClick={() => navigate('/attendance')}
           >
             <div className="relative w-16 h-16 flex items-center justify-center">
@@ -270,27 +270,6 @@ const Index: React.FC = () => {
             <div className="text-center">
               <p className="text-base font-semibold text-foreground">Attendance</p>
               <p className="text-xs text-muted-foreground">Check in / out</p>
-            </div>
-          </Card>
-          )}
-
-          {/* Live Locations */}
-          {settings.locations_enabled && (
-          <Card
-            className={`${settings.attendance_enabled ? '' : 'col-span-2'} liquid-card p-5 flex flex-col items-center justify-center gap-3 cursor-pointer transition-transform hover:-translate-y-0.5`}
-            onClick={() => navigate('/locations')}
-          >
-            <div className="relative w-16 h-16 flex items-center justify-center">
-              <MapPin className={`w-9 h-9 ${sharingCount > 0 ? 'text-success animate-pulse drop-shadow-[0_0_6px_rgba(52,199,89,0.7)]' : 'text-primary'}`} strokeWidth={1.8} />
-              {sharingCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-success animate-ping" />
-              )}
-            </div>
-            <div className="text-center">
-              <p className="text-base font-semibold text-foreground">Locations</p>
-              <p className="text-xs text-muted-foreground">
-                {sharingCount > 0 ? `${sharingCount} sharing` : 'Live map'}
-              </p>
             </div>
           </Card>
           )}
@@ -310,6 +289,43 @@ const Index: React.FC = () => {
               </div>
             </Card>
           )}
+
+          {/* Live Locations */}
+          {settings.locations_enabled && (
+          <Card
+            className={`liquid-card p-5 flex flex-col items-center justify-center gap-3 cursor-pointer transition-transform hover:-translate-y-0.5`}
+            onClick={() => navigate('/locations')}
+          >
+            <div className="relative w-16 h-16 flex items-center justify-center">
+              <MapPin className={`w-9 h-9 ${sharingCount > 0 ? 'text-success animate-pulse drop-shadow-[0_0_6px_rgba(52,199,89,0.7)]' : 'text-primary'}`} strokeWidth={1.8} />
+              {sharingCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-success animate-ping" />
+              )}
+            </div>
+            <div className="text-center">
+              <p className="text-base font-semibold text-foreground">Locations</p>
+              <p className="text-xs text-muted-foreground">
+                {sharingCount > 0 ? `${sharingCount} sharing` : 'Live map'}
+              </p>
+            </div>
+          </Card>
+          )}
+
+          <Card className={`${settings.locations_enabled ? '' : 'col-span-2'} liquid-card overflow-hidden`}>
+            <button
+              type="button"
+              onClick={() => navigate('/alerts')}
+              className="flex h-full w-full flex-col items-center justify-center gap-3 p-5 text-center transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+            >
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center">
+                <BellRing className="h-9 w-9 text-primary" strokeWidth={1.8} />
+              </div>
+              <div>
+                <p className="text-base font-semibold text-foreground">Alert History</p>
+                <p className="text-xs text-muted-foreground">Today’s gate requests</p>
+              </div>
+            </button>
+          </Card>
         </div>
       </main>
 

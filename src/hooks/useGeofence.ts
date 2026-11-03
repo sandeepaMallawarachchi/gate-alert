@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { distanceMeters } from '@/lib/googleMaps';
+import { distanceMeters } from '@/lib/maps';
 
 export interface CompanyLocation {
   latitude: number;

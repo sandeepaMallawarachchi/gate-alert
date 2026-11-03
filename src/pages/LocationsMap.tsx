@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import L from 'leaflet';
+import { addMapTiles } from '@/lib/maps';
 
 interface SharedLocation {
   user_id: string;
@@ -16,32 +18,13 @@ interface SharedLocation {
   avatar_url?: string | null;
 }
 
-const GMAPS_KEY = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY;
-const TRACKING_ID = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID;
-
-// Load google maps script once
-let mapsLoader: Promise<void> | null = null;
-const loadGoogleMaps = () => {
-  if (mapsLoader) return mapsLoader;
-  mapsLoader = new Promise<void>((resolve, reject) => {
-    if ((window as any).google?.maps) return resolve();
-    (window as any).__initGMaps = () => resolve();
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GMAPS_KEY}&loading=async&callback=__initGMaps&channel=${TRACKING_ID || ''}`;
-    script.async = true;
-    script.defer = true;
-    script.onerror = () => reject(new Error('Failed to load Google Maps'));
-    document.head.appendChild(script);
-  });
-  return mapsLoader;
-};
-
 const LocationsMap: React.FC = () => {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const mapDivRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<any>(null);
-  const overlaysRef = useRef<Record<string, any>>({});
+  const mapRef = useRef<L.Map | null>(null);
+  const overlaysRef = useRef<Record<string, L.Marker>>({});
+  const framedRef = useRef(false);
   const watchIdRef = useRef<number | null>(null);
   const wakeLockRef = useRef<any>(null);
   const lastPosRef = useRef<{ lat: number; lng: number; acc: number } | null>(null);
@@ -68,29 +51,24 @@ const LocationsMap: React.FC = () => {
     if (data) setLocations(data as any);
   }, []);
 
-  // Init map
+  // Leaflet needs its visible container, so wait for authentication to finish.
   useEffect(() => {
-    if (!user) return;
-    if (!GMAPS_KEY) {
-      toast.error('Google Maps key missing');
-      return;
-    }
-    loadGoogleMaps()
-      .then(() => {
-        if (!mapDivRef.current) return;
-        const g = (window as any).google;
-        mapRef.current = new g.maps.Map(mapDivRef.current, {
-          center: { lat: 0, lng: 0 },
-          zoom: 2,
-          disableDefaultUI: false,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-        });
-        setMapReady(true);
-      })
-      .catch((e) => toast.error(e.message));
-  }, [user]);
+    if (loading || !user || !mapDivRef.current) return;
+    const map = L.map(mapDivRef.current).setView([7.8731, 80.7718], 7);
+    addMapTiles(map);
+    mapRef.current = map;
+    framedRef.current = false;
+    setMapReady(true);
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(mapDivRef.current);
+    return () => {
+      observer.disconnect();
+      map.remove();
+      mapRef.current = null;
+      overlaysRef.current = {};
+      setMapReady(false);
+    };
+  }, [user, loading]);
 
   // Initial data + realtime
   useEffect(() => {
@@ -119,112 +97,63 @@ const LocationsMap: React.FC = () => {
     return () => { supabase.removeChannel(channel); clearInterval(interval); };
   }, [user, fetchLocations, refreshProfiles]);
 
-  // Render/update avatar markers
+  // Build marker and popup content with DOM nodes so profile text remains plain text.
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
-    const g = (window as any).google;
     const map = mapRef.current;
     const seen = new Set<string>();
-    const bounds = new g.maps.LatLngBounds();
-    let hasPoints = false;
-
-    locations.forEach((loc) => {
+    const bounds = L.latLngBounds([]);
+    for (const loc of locations) {
+      const lat = Number(loc.latitude);
+      const lng = Number(loc.longitude);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
       seen.add(loc.user_id);
-      const p = profiles[loc.user_id];
-      const name = p?.full_name || 'Member';
-      const avatarUrl = p?.avatar_url;
-      const pos = new g.maps.LatLng(Number(loc.latitude), Number(loc.longitude));
-      hasPoints = true;
-      bounds.extend(pos);
-
-      if (overlaysRef.current[loc.user_id]) {
-        overlaysRef.current[loc.user_id].setPosition(pos);
-      } else {
-        const overlay = new g.maps.OverlayView();
-        (overlay as any).position_ = pos;
-
-        overlay.onAdd = function () {
-          const div = document.createElement('div');
-          div.style.cssText = 'position:absolute;cursor:pointer;transform:translate(-50%,-100%);z-index:1;';
-
-          const size = 44;
-          const circle = document.createElement('div');
-          circle.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;font-family:system-ui,sans-serif;position:relative;`;
-
-          if (avatarUrl) {
-            circle.style.backgroundImage = `url(${avatarUrl})`;
-            circle.style.backgroundSize = 'cover';
-            circle.style.backgroundPosition = 'center';
-          } else {
-            const hue = name.split('').reduce((a, b) => a + b.charCodeAt(0), 0) % 360;
-            circle.style.backgroundColor = `hsl(${hue}, 55%, 45%)`;
-            const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
-            circle.textContent = initials;
-          }
-
-          div.appendChild(circle);
-
-          if (loc.is_live) {
-            const dot = document.createElement('div');
-            dot.style.cssText = 'position:absolute;bottom:1px;right:1px;width:14px;height:14px;border-radius:50%;background:#ef4444;border:2.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.3);';
-            circle.appendChild(dot);
-          }
-
-          const hue = name.split('').reduce((a: number, b: string) => a + b.charCodeAt(0), 0) % 360;
-          const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
-          const avatarHtml = avatarUrl
-            ? `<img src="${avatarUrl}" alt="${name}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;" />`
-            : `<div style="width:64px;height:64px;border-radius:50%;background:hsl(${hue},55%,45%);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;font-family:system-ui,sans-serif;border:2px solid #e5e7eb;">${initials}</div>`;
-          const infoContent = `<div style="color:#000;font-family:system-ui;font-size:13px;padding:6px 4px;display:flex;align-items:center;gap:10px;min-width:180px;">${avatarHtml}<div><strong style="font-size:14px;">${name}</strong><br/>${loc.is_live ? '<span style="color:#ef4444;">● Live sharing</span>' : 'Shared once'}<br/><small style="color:#666;">${new Date(loc.updated_at).toLocaleTimeString()}</small></div></div>`;
-          const infoWindow = new g.maps.InfoWindow({ content: infoContent });
-          div.addEventListener('click', () => {
-            infoWindow.setPosition((overlay as any).position_);
-            infoWindow.open({ map, shouldFocus: false });
-          });
-
-          (overlay as any).div_ = div;
-          this.getPanes().overlayMouseTarget.appendChild(div);
-        };
-
-        overlay.draw = function () {
-          const projection = this.getProjection();
-          if (!projection) return;
-          const point = projection.fromLatLngToDivPixel((overlay as any).position_);
-          if (point && (overlay as any).div_) {
-            (overlay as any).div_.style.left = point.x + 'px';
-            (overlay as any).div_.style.top = point.y + 'px';
-          }
-        };
-
-        overlay.onRemove = function () {
-          if ((overlay as any).div_?.parentNode) {
-            (overlay as any).div_.parentNode.removeChild((overlay as any).div_);
-          }
-        };
-
-        (overlay as any).setPosition = function (newPos: any) {
-          (overlay as any).position_ = newPos;
-          overlay.draw();
-        };
-
-        overlay.setMap(map);
-        overlaysRef.current[loc.user_id] = overlay;
+      const name = profiles[loc.user_id]?.full_name || 'Member';
+      const avatar = profiles[loc.user_id]?.avatar_url;
+      const circle = document.createElement('div');
+      circle.className = 'member-map-avatar';
+      circle.textContent = name.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+      if (avatar) {
+        const img = document.createElement('img');
+        img.src = avatar;
+        img.alt = name;
+        img.addEventListener('error', () => img.remove());
+        circle.appendChild(img);
       }
-    });
-
-    // Cleanup removed overlays
-    Object.keys(overlaysRef.current).forEach((uid) => {
+      if (loc.is_live) {
+        const dot = document.createElement('span');
+        dot.className = 'member-map-live';
+        circle.appendChild(dot);
+      }
+      const icon = L.divIcon({ className: 'member-map-marker', html: circle, iconSize: [44, 44], iconAnchor: [22, 22] });
+      const content = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = name;
+      const status = document.createElement('p');
+      status.textContent = loc.is_live ? '● Live sharing' : 'Shared once';
+      const time = document.createElement('small');
+      time.textContent = 'Updated ' + new Date(loc.updated_at).toLocaleTimeString();
+      content.append(title, status, time);
+      const existing = overlaysRef.current[loc.user_id];
+      if (existing) {
+        existing.setLatLng([lat, lng]).setIcon(icon);
+        existing.getPopup()?.setContent(content);
+      } else {
+        overlaysRef.current[loc.user_id] = L.marker([lat, lng], { icon, title: name })
+          .addTo(map).bindPopup(content);
+      }
+      bounds.extend([lat, lng]);
+    }
+    for (const uid of Object.keys(overlaysRef.current)) {
       if (!seen.has(uid)) {
-        overlaysRef.current[uid].setMap(null);
+        overlaysRef.current[uid].remove();
         delete overlaysRef.current[uid];
       }
-    });
-
-    if (hasPoints) {
-      map.fitBounds(bounds, 80);
-      if (locations.length === 1) {
-        setTimeout(() => mapRef.current?.setZoom(15), 200);
-      }
+    }
+    // Frame once; later realtime updates respect the user's pan/zoom.
+    if (bounds.isValid() && !framedRef.current) {
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+      framedRef.current = true;
     }
   }, [locations, profiles, mapReady]);
 
@@ -380,7 +309,7 @@ const LocationsMap: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-3 z-30 mx-3 mt-3 flex items-center justify-between px-3 py-2 glass rounded-full">
+      <header className="sticky top-3 z-30 mx-3 mt-3 flex flex-wrap gap-2 items-center justify-between px-3 py-2 glass rounded-3xl">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="apple-icon-button" onClick={() => navigate('/')}>
             <ArrowLeft className="w-5 h-5" />
@@ -405,8 +334,8 @@ const LocationsMap: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-1 relative pb-20 lg:pb-0">
-        <div ref={mapDivRef} className="absolute inset-0" />
+      <main className="flex-1 relative min-h-[55vh] mt-3 isolate">
+        <div ref={mapDivRef} className="absolute inset-0 z-0" />
         {!mapReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -414,7 +343,7 @@ const LocationsMap: React.FC = () => {
         )}
       </main>
 
-      <footer className="px-4 py-2 border-t border-border text-xs text-muted-foreground">
+      <footer className="px-4 pt-2 pb-24 lg:pb-3 border-t border-border text-xs text-muted-foreground">
         {locations.length} member{locations.length === 1 ? '' : 's'} sharing
         {isLive && <span className="ml-2 text-destructive font-medium">● You are live</span>}
       </footer>

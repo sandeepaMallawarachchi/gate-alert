@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Loader2, MapPin, Crosshair } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { loadGoogleMaps } from '@/lib/googleMaps';
+import L from 'leaflet';
+import { addMapTiles, officePin } from '@/lib/maps';
 import { toast } from 'sonner';
 
 interface Props {
@@ -26,18 +27,17 @@ interface Loc {
 const DEFAULT: Loc = {
   name: 'Office',
   address: '',
-  latitude: 0,
-  longitude: 0,
+  latitude: 6.9271,
+  longitude: 79.8612,
   radius_meters: 100,
 };
 
 const CompanyLocationPicker: React.FC<Props> = ({ open, onOpenChange }) => {
   const { user } = useAuth();
   const mapDivRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const mapRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
-  const circleRef = useRef<any>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  const circleRef = useRef<L.Circle | null>(null);
   const [loc, setLoc] = useState<Loc>(DEFAULT);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,6 +58,7 @@ const CompanyLocationPicker: React.FC<Props> = ({ open, onOpenChange }) => {
           radius_meters: data.radius_meters,
         });
       } else {
+        setLoc(DEFAULT);
         // Try to prefill with device location
         if ('geolocation' in navigator) {
           navigator.geolocation.getCurrentPosition(
@@ -71,82 +72,45 @@ const CompanyLocationPicker: React.FC<Props> = ({ open, onOpenChange }) => {
     })();
   }, [open]);
 
-  // Init map when open + loaded
+  // Initialize after the dialog content is mounted; dispose on close/reopen.
   useEffect(() => {
-    if (!open || loading) return;
-    let cancelled = false;
-    loadGoogleMaps()
-      .then(() => {
-        if (cancelled || !mapDivRef.current) return;
-        const g = (window as any).google;
-        const center = { lat: loc.latitude || 0, lng: loc.longitude || 0 };
-        mapRef.current = new g.maps.Map(mapDivRef.current, {
-          center,
-          zoom: loc.latitude ? 17 : 3,
-          disableDefaultUI: true,
-          zoomControl: true,
-        });
-        markerRef.current = new g.maps.Marker({
-          map: mapRef.current,
-          position: center,
-          draggable: true,
-        });
-        circleRef.current = new g.maps.Circle({
-          map: mapRef.current,
-          center,
-          radius: loc.radius_meters,
-          fillColor: '#1976e8',
-          fillOpacity: 0.15,
-          strokeColor: '#1976e8',
-          strokeOpacity: 0.9,
-          strokeWeight: 2,
-        });
-        markerRef.current.addListener('dragend', () => {
-          const p = markerRef.current.getPosition();
-          const lat = p.lat();
-          const lng = p.lng();
-          circleRef.current.setCenter({ lat, lng });
-          setLoc((l) => ({ ...l, latitude: lat, longitude: lng }));
-        });
-        mapRef.current.addListener('click', (e: any) => {
-          const lat = e.latLng.lat();
-          const lng = e.latLng.lng();
-          markerRef.current.setPosition({ lat, lng });
-          circleRef.current.setCenter({ lat, lng });
-          setLoc((l) => ({ ...l, latitude: lat, longitude: lng }));
-        });
-
-        // Places autocomplete
-        if (searchInputRef.current && g.maps.places?.Autocomplete) {
-          const ac = new g.maps.places.Autocomplete(searchInputRef.current, {
-            fields: ['geometry', 'formatted_address', 'name'],
-          });
-          ac.bindTo('bounds', mapRef.current);
-          ac.addListener('place_changed', () => {
-            const place = ac.getPlace();
-            if (!place.geometry?.location) return;
-            const lat = place.geometry.location.lat();
-            const lng = place.geometry.location.lng();
-            mapRef.current.setCenter({ lat, lng });
-            mapRef.current.setZoom(17);
-            markerRef.current.setPosition({ lat, lng });
-            circleRef.current.setCenter({ lat, lng });
-            setLoc((l) => ({
-              ...l,
-              latitude: lat,
-              longitude: lng,
-              address: place.formatted_address || l.address,
-              name: place.name || l.name,
-            }));
-          });
-        }
-      })
-      .catch((e) => toast.error(e.message));
-    return () => {
-      cancelled = true;
+    if (!open || loading || !mapDivRef.current) return;
+    const map = L.map(mapDivRef.current).setView([loc.latitude, loc.longitude], loc.id ? 17 : 13);
+    addMapTiles(map);
+    const marker = L.marker([loc.latitude, loc.longitude], { draggable: true, icon: officePin() }).addTo(map);
+    const circle = L.circle([loc.latitude, loc.longitude], {
+      radius: loc.radius_meters, color: '#1976e8', fillColor: '#1976e8', fillOpacity: 0.15, weight: 2,
+    }).addTo(map);
+    mapRef.current = map;
+    markerRef.current = marker;
+    circleRef.current = circle;
+    const select = (lat: number, lng: number) => {
+      marker.setLatLng([lat, lng]);
+      circle.setLatLng([lat, lng]);
+      setLoc((value) => ({ ...value, latitude: lat, longitude: lng }));
     };
+    marker.on('dragend', () => { const point = marker.getLatLng(); select(point.lat, point.lng); });
+    map.on('click', (event: L.LeafletMouseEvent) => select(event.latlng.lat, event.latlng.lng));
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(mapDivRef.current);
+    const frame = requestAnimationFrame(() => map.invalidateSize());
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+      circleRef.current = null;
+    };
+    // Coordinates and radius are updated separately, without rebuilding the map.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, loading]);
+
+  useEffect(() => {
+    markerRef.current?.setLatLng([loc.latitude, loc.longitude]);
+    circleRef.current?.setLatLng([loc.latitude, loc.longitude]);
+    mapRef.current?.panTo([loc.latitude, loc.longitude]);
+  }, [loc.latitude, loc.longitude]);
 
   // Update circle radius when changed
   useEffect(() => {
@@ -154,16 +118,15 @@ const CompanyLocationPicker: React.FC<Props> = ({ open, onOpenChange }) => {
   }, [loc.radius_meters]);
 
   const useMyLocation = () => {
-    if (!('geolocation' in navigator)) return;
+    if (!('geolocation' in navigator)) { toast.error('Location is not supported on this device'); return; }
     navigator.geolocation.getCurrentPosition(
       (p) => {
         const lat = p.coords.latitude;
         const lng = p.coords.longitude;
         if (mapRef.current) {
-          mapRef.current.setCenter({ lat, lng });
-          mapRef.current.setZoom(17);
-          markerRef.current?.setPosition({ lat, lng });
-          circleRef.current?.setCenter({ lat, lng });
+          mapRef.current.setView([lat, lng], 17);
+          markerRef.current?.setLatLng([lat, lng]);
+          circleRef.current?.setLatLng([lat, lng]);
         }
         setLoc((l) => ({ ...l, latitude: lat, longitude: lng }));
       },
@@ -172,7 +135,7 @@ const CompanyLocationPicker: React.FC<Props> = ({ open, onOpenChange }) => {
   };
 
   const save = async () => {
-    if (!loc.latitude || !loc.longitude) {
+    if (!Number.isFinite(loc.latitude) || !Number.isFinite(loc.longitude)) {
       toast.error('Please pick a location on the map');
       return;
     }
@@ -199,7 +162,7 @@ const CompanyLocationPicker: React.FC<Props> = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-2xl">
+      <DialogContent className="bg-card border-border max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center gap-2">
             <MapPin className="w-5 h-5 text-primary" /> Company Location
@@ -230,27 +193,28 @@ const CompanyLocationPicker: React.FC<Props> = ({ open, onOpenChange }) => {
             </div>
           </div>
           <div>
-            <Label className="text-foreground">Search address</Label>
+            <Label className="text-foreground">Office address (optional)</Label>
             <Input
-              ref={searchInputRef}
-              placeholder="Search for an address or place"
+              value={loc.address || ''}
+              onChange={(event) => setLoc({ ...loc, address: event.target.value })}
+              placeholder="Enter the office address"
               className="bg-input border-border"
             />
           </div>
           <div
             ref={mapDivRef}
-            className="w-full h-72 rounded-md overflow-hidden border border-border bg-secondary flex items-center justify-center"
+            className="w-full h-72 rounded-2xl overflow-hidden border border-border bg-secondary isolate z-0"
           >
             {loading && <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />}
           </div>
           <p className="text-xs text-muted-foreground">
-            Tap on the map or drag the marker. Members can only check in inside this circle.
+            Tap the map or drag the blue pin to set the office. Members can only check in inside this circle.
           </p>
           <div className="flex gap-2">
             <Button variant="outline" onClick={useMyLocation} className="flex-1">
               <Crosshair className="w-4 h-4 mr-2" /> Use my current location
             </Button>
-            <Button onClick={save} disabled={saving} className="flex-1">
+            <Button onClick={save} disabled={saving || loading} className="flex-1">
               {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Save location
             </Button>
